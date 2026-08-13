@@ -169,59 +169,68 @@ function closeProfileModal() {
   document.getElementById('profile-modal').classList.add('hidden');
 }
 
-document.getElementById('edit-profile-form').onsubmit = function(e) {
-  e.preventDefault();
-  currentUser.name = document.getElementById('edit-name').value;
-  currentUser.age = document.getElementById('edit-age').value;
-  currentUser.gender = document.getElementById('edit-gender').value;
+const editForm = document.getElementById('edit-profile-form');
+if (editForm) {
+  editForm.onsubmit = function(e) {
+    e.preventDefault();
+    currentUser.name = document.getElementById('edit-name').value;
+    currentUser.age = document.getElementById('edit-age').value;
+    currentUser.gender = document.getElementById('edit-gender').value;
 
-  const photoInput = document.getElementById('edit-photo-file');
-  if (photoInput.files && photoInput.files[0]) {
-    const reader = new FileReader();
-    reader.onload = function(evt) {
-      const img = new Image();
-      img.onload = function() {
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        canvas.width = 150;
-        canvas.height = 150;
-        ctx.drawImage(img, 0, 0, 150, 150);
-        
-        currentUser.photo = canvas.toDataURL('image/jpeg', 0.8);
-        saveAllData();
-        updateUserBadge();
-        applyGenderContext();
-        closeProfileModal();
-        showToast('Profile photo saved permanently! 📸✨');
+    const photoInput = document.getElementById('edit-photo-file');
+    if (photoInput && photoInput.files && photoInput.files[0]) {
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        const img = new Image();
+        img.onload = function() {
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+          canvas.width = 150;
+          canvas.height = 150;
+          ctx.drawImage(img, 0, 0, 150, 150);
+          
+          currentUser.photo = canvas.toDataURL('image/jpeg', 0.8);
+          saveAllData();
+          updateUserBadge();
+          applyGenderContext();
+          closeProfileModal();
+          showToast('Profile photo saved permanently! 📸✨');
+        };
+        img.src = evt.target.result;
       };
-      img.src = evt.target.result;
-    };
-    reader.readAsDataURL(photoInput.files[0]);
-  } else {
-    saveAllData();
-    updateUserBadge();
-    applyGenderContext();
-    closeProfileModal();
-    showToast('Profile details updated! ✨');
-  }
-};
+      reader.readAsDataURL(photoInput.files[0]);
+    } else {
+      saveAllData();
+      updateUserBadge();
+      applyGenderContext();
+      closeProfileModal();
+      showToast('Profile details updated! ✨');
+    }
+  };
+}
 
 function updateUserBadge() {
   if (currentUser) {
-    document.getElementById('display-user-name').textContent = currentUser.name;
-    document.getElementById('display-user-meta').textContent = `${currentUser.age} yrs • ${currentUser.gender}`;
-    document.getElementById('settings-email-display').textContent = currentUser.email || 'User';
+    const nameEl = document.getElementById('display-user-name');
+    const metaEl = document.getElementById('display-user-meta');
+    const emailEl = document.getElementById('settings-email-display');
+
+    if (nameEl) nameEl.textContent = currentUser.name;
+    if (metaEl) metaEl.textContent = `${currentUser.age} yrs • ${currentUser.gender}`;
+    if (emailEl) emailEl.textContent = currentUser.email || 'User';
 
     const avatarImg = document.getElementById('user-avatar-img');
     const avatarEmoji = document.getElementById('user-avatar-emoji');
 
     if (currentUser.photo) {
-      avatarImg.src = currentUser.photo;
-      avatarImg.classList.remove('hidden');
-      avatarEmoji.classList.add('hidden');
+      if (avatarImg) {
+        avatarImg.src = currentUser.photo;
+        avatarImg.classList.remove('hidden');
+      }
+      if (avatarEmoji) avatarEmoji.classList.add('hidden');
     } else {
-      avatarImg.classList.add('hidden');
-      avatarEmoji.classList.remove('hidden');
+      if (avatarImg) avatarImg.classList.add('hidden');
+      if (avatarEmoji) avatarEmoji.classList.remove('hidden');
     }
   }
 }
@@ -233,7 +242,7 @@ function updateBrandTitle() {
   }
 }
 
-// DYNAMIC GENDER & ROUTINE ADAPTATION
+// DYNAMIC GENDER, THEME & ROUTINE ADAPTATION
 function applyGenderContext() {
   if (!currentUser) return;
   const isMale = currentUser.gender === 'male';
@@ -244,34 +253,66 @@ function applyGenderContext() {
   const routineCatSelect = document.getElementById('routine-category');
 
   if (isMale) {
+    // 🎨 AUTO-SWITCH TO SLATE BLUE THEME FOR MALE USERS
+    if (!appData.theme || appData.theme === 'theme-default') {
+      appData.theme = 'theme-masculine';
+    }
+    document.body.className = appData.theme;
+
     if (femaleCard) femaleCard.classList.add('hidden');
     if (femaleBustGroup) femaleBustGroup.classList.add('hidden');
     if (maleChestGroup) maleChestGroup.classList.remove('hidden');
 
-    document.getElementById('nav-wellness-btn').querySelector('.nav-text').textContent = 'Athletic & Wellness';
-    document.getElementById('nav-wellness-btn').querySelector('.nav-icon').textContent = '🏋️‍♂️';
-    document.getElementById('well-title').textContent = '🏋️‍♂️ Athletic & Fitness Suite ⚡';
-    document.getElementById('fitness-card-title').textContent = '💪 Athletic Fitness, Fasting & Calories';
-    if (!currentUser.photo) document.getElementById('user-avatar-emoji').textContent = '⚡';
+    const navBtn = document.getElementById('nav-wellness-btn');
+    if (navBtn) {
+      const textEl = navBtn.querySelector('.nav-text');
+      const iconEl = navBtn.querySelector('.nav-icon');
+      if (textEl) textEl.textContent = 'Athletic & Wellness';
+      if (iconEl) iconEl.textContent = '🏋️‍♂️';
+    }
+
+    const wellTitle = document.getElementById('well-title');
+    const fitnessTitle = document.getElementById('fitness-card-title');
+    const avatarEmoji = document.getElementById('user-avatar-emoji');
+
+    if (wellTitle) wellTitle.textContent = '🏋️‍♂️ Athletic & Fitness Suite ⚡';
+    if (fitnessTitle) fitnessTitle.textContent = '💪 Athletic Fitness, Fasting & Calories';
+    if (!currentUser.photo && avatarEmoji) avatarEmoji.textContent = '⚡';
 
     if (routineCatSelect) {
       routineCatSelect.innerHTML = `
         <option value="Grooming">Grooming & Beard 🧔</option>
         <option value="Skincare">Skincare 🧴</option>
         <option value="Body Care">Body Care 🌸</option>
-        <option value="Hair Care">Hair Care 💇‍♂️</option>
+        <option value="Hair Care">Hair Care 💆‍♂️</option>
       `;
     }
   } else {
+    // 🎨 AUTO-SWITCH TO PASTEL PINK THEME FOR FEMALE USERS
+    if (!appData.theme || appData.theme === 'theme-masculine') {
+      appData.theme = 'theme-default';
+    }
+    document.body.className = appData.theme;
+
     if (femaleCard) femaleCard.classList.remove('hidden');
     if (femaleBustGroup) femaleBustGroup.classList.remove('hidden');
     if (maleChestGroup) maleChestGroup.classList.add('hidden');
 
-    document.getElementById('nav-wellness-btn').querySelector('.nav-text').textContent = 'Wellness & Lifestyle';
-    document.getElementById('nav-wellness-btn').querySelector('.nav-icon').textContent = '🌸';
-    document.getElementById('well-title').textContent = '🌸 Wellness & Lifestyle Suite ✨';
-    document.getElementById('fitness-card-title').textContent = '🏃 Fitness, Fasting & Calories';
-    if (!currentUser.photo) document.getElementById('user-avatar-emoji').textContent = '✨';
+    const navBtn = document.getElementById('nav-wellness-btn');
+    if (navBtn) {
+      const textEl = navBtn.querySelector('.nav-text');
+      const iconEl = navBtn.querySelector('.nav-icon');
+      if (textEl) textEl.textContent = 'Wellness & Lifestyle';
+      if (iconEl) iconEl.textContent = '🌸';
+    }
+
+    const wellTitle = document.getElementById('well-title');
+    const fitnessTitle = document.getElementById('fitness-card-title');
+    const avatarEmoji = document.getElementById('user-avatar-emoji');
+
+    if (wellTitle) wellTitle.textContent = '🌸 Wellness & Lifestyle Suite ✨';
+    if (fitnessTitle) fitnessTitle.textContent = '🏃 Fitness, Fasting & Calories';
+    if (!currentUser.photo && avatarEmoji) avatarEmoji.textContent = '✨';
 
     if (routineCatSelect) {
       routineCatSelect.innerHTML = `
@@ -297,18 +338,22 @@ function applyStoredTheme() {
   }
 }
 
-document.getElementById('logout-btn').onclick = handleLogout;
+const logoutBtn = document.getElementById('logout-btn');
+if (logoutBtn) logoutBtn.onclick = handleLogout;
 
-document.getElementById('reset-data-btn').onclick = () => {
-  if (confirm('Are you sure you want to reset all sanctuary data for this account?')) {
-    if (activeUserEmail && userDatabase[activeUserEmail]) {
-      delete userDatabase[activeUserEmail];
-      localStorage.setItem('auraFlowUserDatabase', JSON.stringify(userDatabase));
+const resetBtn = document.getElementById('reset-data-btn');
+if (resetBtn) {
+  resetBtn.onclick = () => {
+    if (confirm('Are you sure you want to reset all sanctuary data for this account?')) {
+      if (activeUserEmail && userDatabase[activeUserEmail]) {
+        delete userDatabase[activeUserEmail];
+        localStorage.setItem('auraFlowUserDatabase', JSON.stringify(userDatabase));
+      }
+      localStorage.removeItem('auraFlowActiveEmail');
+      location.reload();
     }
-    localStorage.removeItem('auraFlowActiveEmail');
-    location.reload();
-  }
-};
+  };
+}
 
 // 5. TAB NAVIGATION
 function initTabNavigation() {
@@ -325,24 +370,36 @@ function initTabNavigation() {
     });
   });
 
-  document.getElementById('upgrade-pro-btn').onclick = () => {
-    document.getElementById('pro-modal').classList.remove('hidden');
-  };
-  document.getElementById('close-pro-btn').onclick = () => {
-    document.getElementById('pro-modal').classList.add('hidden');
-  };
+  const upgradeBtn = document.getElementById('upgrade-pro-btn');
+  const closeProBtn = document.getElementById('close-pro-btn');
+
+  if (upgradeBtn) {
+    upgradeBtn.onclick = () => {
+      const modal = document.getElementById('pro-modal');
+      if (modal) modal.classList.remove('hidden');
+    };
+  }
+  if (closeProBtn) {
+    closeProBtn.onclick = () => {
+      const modal = document.getElementById('pro-modal');
+      if (modal) modal.classList.add('hidden');
+    };
+  }
 }
 
 // 6. TASKS & HABITS
-document.getElementById('add-todo-btn').onclick = () => {
-  const input = document.getElementById('todo-input');
-  if (!input.value.trim()) return;
-  appData.todos.push({ id: Date.now(), text: input.value.trim() });
-  input.value = '';
-  saveAllData();
-  renderTodos();
-  showToast('Goal added! ✨');
-};
+const addTodoBtn = document.getElementById('add-todo-btn');
+if (addTodoBtn) {
+  addTodoBtn.onclick = () => {
+    const input = document.getElementById('todo-input');
+    if (!input || !input.value.trim()) return;
+    appData.todos.push({ id: Date.now(), text: input.value.trim() });
+    input.value = '';
+    saveAllData();
+    renderTodos();
+    showToast('Goal added! ✨');
+  };
+}
 
 function renderTodos() {
   const list = document.getElementById('todo-list');
@@ -361,15 +418,18 @@ function deleteTodo(id) {
   renderTodos();
 }
 
-document.getElementById('add-habit-btn').onclick = () => {
-  const input = document.getElementById('habit-input');
-  if (!input.value.trim()) return;
-  appData.habits.push({ id: Date.now(), text: input.value.trim(), streak: 0 });
-  input.value = '';
-  saveAllData();
-  renderHabits();
-  showToast('Habit ritual created! ✨');
-};
+const addHabitBtn = document.getElementById('add-habit-btn');
+if (addHabitBtn) {
+  addHabitBtn.onclick = () => {
+    const input = document.getElementById('habit-input');
+    if (!input || !input.value.trim()) return;
+    appData.habits.push({ id: Date.now(), text: input.value.trim(), streak: 0 });
+    input.value = '';
+    saveAllData();
+    renderHabits();
+    showToast('Habit ritual created! ✨');
+  };
+}
 
 function renderHabits() {
   const list = document.getElementById('habit-list');
@@ -389,15 +449,18 @@ function incrementStreak(id) {
   renderHabits();
 }
 
-document.getElementById('add-event-btn').onclick = () => {
-  const date = document.getElementById('event-date').value;
-  const desc = document.getElementById('event-desc').value;
-  if (!date || !desc) return;
-  appData.events.push({ id: Date.now(), date, desc });
-  saveAllData();
-  renderEvents();
-  showToast('Event scheduled! ✨');
-};
+const addEventBtn = document.getElementById('add-event-btn');
+if (addEventBtn) {
+  addEventBtn.onclick = () => {
+    const date = document.getElementById('event-date').value;
+    const desc = document.getElementById('event-desc').value;
+    if (!date || !desc) return;
+    appData.events.push({ id: Date.now(), date, desc });
+    saveAllData();
+    renderEvents();
+    showToast('Event scheduled! ✨');
+  };
+}
 
 function renderEvents() {
   const list = document.getElementById('event-list');
@@ -423,17 +486,20 @@ function initCharts() {
   initWellnessCharts();
 }
 
-document.getElementById('add-fin-btn').onclick = () => {
-  const desc = document.getElementById('fin-desc').value;
-  const amount = parseFloat(document.getElementById('fin-amount').value);
-  const type = document.getElementById('fin-type').value;
-  if (!desc || isNaN(amount)) return;
+const addFinBtn = document.getElementById('add-fin-btn');
+if (addFinBtn) {
+  addFinBtn.onclick = () => {
+    const desc = document.getElementById('fin-desc').value;
+    const amount = parseFloat(document.getElementById('fin-amount').value);
+    const type = document.getElementById('fin-type').value;
+    if (!desc || isNaN(amount)) return;
 
-  appData.finances.push({ id: Date.now(), desc, amount, type });
-  saveAllData();
-  renderFinances();
-  showToast('Transaction recorded! ✨');
-};
+    appData.finances.push({ id: Date.now(), desc, amount, type });
+    saveAllData();
+    renderFinances();
+    showToast('Transaction recorded! ✨');
+  };
+}
 
 function renderFinances() {
   const list = document.getElementById('fin-list');
@@ -453,17 +519,20 @@ function renderFinances() {
   }
 }
 
-document.getElementById('add-invest-btn').onclick = () => {
-  const name = document.getElementById('invest-name').value;
-  const amount = parseFloat(document.getElementById('invest-amount').value);
-  const returns = parseFloat(document.getElementById('invest-returns').value);
-  if (!name || isNaN(amount)) return;
+const addInvestBtn = document.getElementById('add-invest-btn');
+if (addInvestBtn) {
+  addInvestBtn.onclick = () => {
+    const name = document.getElementById('invest-name').value;
+    const amount = parseFloat(document.getElementById('invest-amount').value);
+    const returns = parseFloat(document.getElementById('invest-returns').value);
+    if (!name || isNaN(amount)) return;
 
-  appData.investments.push({ id: Date.now(), name, amount, returns });
-  saveAllData();
-  renderInvestments();
-  showToast('Asset added! ✨');
-};
+    appData.investments.push({ id: Date.now(), name, amount, returns });
+    saveAllData();
+    renderInvestments();
+    showToast('Asset added! ✨');
+  };
+}
 
 function renderInvestments() {
   const list = document.getElementById('invest-list');
@@ -476,89 +545,98 @@ function renderInvestments() {
   });
 }
 
-document.getElementById('calc-goal-btn').onclick = () => {
-  const exp = parseFloat(document.getElementById('monthly-exp').value);
-  const months = parseInt(document.getElementById('target-months').value);
-  if (!isNaN(exp)) {
-    document.getElementById('goal-result').textContent = `Target: ₹${(exp * months).toLocaleString()}`;
-  }
-};
-// Add or update the Bank Sync and Pro CSV handler in script.js:
+const calcGoalBtn = document.getElementById('calc-goal-btn');
+if (calcGoalBtn) {
+  calcGoalBtn.onclick = () => {
+    const exp = parseFloat(document.getElementById('monthly-exp').value);
+    const months = parseInt(document.getElementById('target-months').value);
+    if (!isNaN(exp)) {
+      document.getElementById('goal-result').textContent = `Target: ₹${(exp * months).toLocaleString()}`;
+    }
+  };
+}
 
 // --- BANK ACCOUNT AUTO SYNC FEATURE ---
-document.getElementById('link-bank-btn').onclick = () => {
-  if (!currentUser || !currentUser.isPro) {
-    showToast('Bank Account Sync is an AuraFlow Pro feature! 🚀');
-    document.getElementById('pro-modal').classList.remove('hidden');
-    return;
-  }
+const linkBankBtn = document.getElementById('link-bank-btn');
+if (linkBankBtn) {
+  linkBankBtn.onclick = () => {
+    if (!currentUser || !currentUser.isPro) {
+      showToast('Bank Account Sync is an AuraFlow Pro feature! 🚀');
+      const proModal = document.getElementById('pro-modal');
+      if (proModal) proModal.classList.remove('hidden');
+      return;
+    }
 
-  const bankName = document.getElementById('bank-select').value;
-  const accNum = document.getElementById('bank-acc-num').value.trim();
+    const bankName = document.getElementById('bank-select').value;
+    const accNum = document.getElementById('bank-acc-num').value.trim();
 
-  if (!accNum) {
-    alert("Please enter a valid Account Number or UPI ID.");
-    return;
-  }
+    if (!accNum) {
+      alert("Please enter a valid Account Number or UPI ID.");
+      return;
+    }
 
-  // Show connected badge
-  const statusMsg = document.getElementById('bank-status-msg');
-  const bankDisplay = document.getElementById('connected-bank-name');
-  if (statusMsg && bankDisplay) {
-    bankDisplay.textContent = bankName;
-    statusMsg.classList.remove('hidden');
-  }
+    const statusMsg = document.getElementById('bank-status-msg');
+    const bankDisplay = document.getElementById('connected-bank-name');
+    if (statusMsg && bankDisplay) {
+      bankDisplay.textContent = bankName;
+      statusMsg.classList.remove('hidden');
+    }
 
-  // Simulate auto-imported income and expense transactions
-  const autoImportedTransactions = [
-    { id: Date.now() + 1, desc: `Salary Credit (${bankName})`, amount: 45000, type: 'income' },
-    { id: Date.now() + 2, desc: `SIP Investment (${bankName})`, amount: 5000, type: 'expense' },
-    { id: Date.now() + 3, desc: `Utility & Wifi Bill (${bankName})`, amount: 1200, type: 'expense' }
-  ];
+    const autoImportedTransactions = [
+      { id: Date.now() + 1, desc: `Salary Credit (${bankName})`, amount: 45000, type: 'income' },
+      { id: Date.now() + 2, desc: `SIP Investment (${bankName})`, amount: 5000, type: 'expense' },
+      { id: Date.now() + 3, desc: `Utility & Wifi Bill (${bankName})`, amount: 1200, type: 'expense' }
+    ];
 
-  appData.finances.push(...autoImportedTransactions);
-  saveAllData();
-  renderFinances();
-  showToast(`Connected to ${bankName}! Auto-imported 3 recent transactions 🏦✨`);
-};
+    appData.finances.push(...autoImportedTransactions);
+    saveAllData();
+    renderFinances();
+    showToast(`Connected to ${bankName}! Auto-imported 3 recent transactions 🏦✨`);
+  };
+}
 
 // --- PRO CSV EXPORT HANDLER ---
-document.getElementById('export-csv-btn').onclick = () => {
-  // If user is NOT pro, trigger Pro Payment Option!
-  if (!currentUser || !currentUser.isPro) {
-    showToast('CSV Backup Export is an AuraFlow Pro feature! 🚀');
-    document.getElementById('pro-modal').classList.remove('hidden');
-    return;
-  }
+const exportCsvBtn = document.getElementById('export-csv-btn');
+if (exportCsvBtn) {
+  exportCsvBtn.onclick = () => {
+    if (!currentUser || !currentUser.isPro) {
+      showToast('CSV Backup Export is an AuraFlow Pro feature! 🚀');
+      const proModal = document.getElementById('pro-modal');
+      if (proModal) proModal.classList.remove('hidden');
+      return;
+    }
 
-  // If user IS pro, generate and download CSV
-  let csvContent = "data:text/csv;charset=utf-8,Category,Detail,Value\n";
-  (appData.todos || []).forEach(t => { csvContent += `Task,"${t.text}",Pending\n`; });
-  (appData.finances || []).forEach(f => { csvContent += `Finance,"${f.desc}",₹${f.amount} (${f.type})\n`; });
-  (appData.journals || []).forEach(j => { csvContent += `Journal,"${j.title}",${j.mood}\n`; });
+    let csvContent = "data:text/csv;charset=utf-8,Category,Detail,Value\n";
+    (appData.todos || []).forEach(t => { csvContent += `Task,"${t.text}",Pending\n`; });
+    (appData.finances || []).forEach(f => { csvContent += `Finance,"${f.desc}",₹${f.amount} (${f.type})\n`; });
+    (appData.journals || []).forEach(j => { csvContent += `Journal,"${j.title}",${j.mood}\n`; });
 
-  const encodedUri = encodeURI(csvContent);
-  const link = document.createElement("a");
-  link.setAttribute("href", encodedUri);
-  link.setAttribute("download", "AuraFlow_Sanctuary_Backup.csv");
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  showToast('CSV Backup Downloaded! 📄✨');
-};
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "AuraFlow_Sanctuary_Backup.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    showToast('CSV Backup Downloaded! 📄✨');
+  };
+}
 
 // 8. ROUTINE BUILDER & WORKOUT TRACKER
-document.getElementById('add-routine-btn').onclick = () => {
-  const cat = document.getElementById('routine-category').value;
-  const step = document.getElementById('routine-step-input').value.trim();
-  if (!step) return;
+const addRoutineBtn = document.getElementById('add-routine-btn');
+if (addRoutineBtn) {
+  addRoutineBtn.onclick = () => {
+    const cat = document.getElementById('routine-category').value;
+    const step = document.getElementById('routine-step-input').value.trim();
+    if (!step) return;
 
-  appData.routines.push({ id: Date.now(), category: cat, text: step, completed: false });
-  document.getElementById('routine-step-input').value = '';
-  saveAllData();
-  renderRoutines();
-  showToast('Routine step added! ✨');
-};
+    appData.routines.push({ id: Date.now(), category: cat, text: step, completed: false });
+    document.getElementById('routine-step-input').value = '';
+    saveAllData();
+    renderRoutines();
+    showToast('Routine step added! ✨');
+  };
+}
 
 function renderRoutines() {
   const list = document.getElementById('routine-checklist');
@@ -591,16 +669,19 @@ function deleteRoutine(id) {
   renderRoutines();
 }
 
-document.getElementById('add-workout-btn').onclick = () => {
-  const text = document.getElementById('workout-input').value.trim();
-  if (!text) return;
+const addWorkoutBtn = document.getElementById('add-workout-btn');
+if (addWorkoutBtn) {
+  addWorkoutBtn.onclick = () => {
+    const text = document.getElementById('workout-input').value.trim();
+    if (!text) return;
 
-  appData.workouts.push({ id: Date.now(), text, completed: false });
-  document.getElementById('workout-input').value = '';
-  saveAllData();
-  renderWorkouts();
-  showToast('Exercise added! ⚡');
-};
+    appData.workouts.push({ id: Date.now(), text, completed: false });
+    document.getElementById('workout-input').value = '';
+    saveAllData();
+    renderWorkouts();
+    showToast('Exercise added! ⚡');
+  };
+}
 
 function renderWorkouts() {
   const list = document.getElementById('workout-checklist');
@@ -634,72 +715,91 @@ function deleteWorkout(id) {
 }
 
 // 9. WELLNESS, WATER & METRICS
-document.getElementById('calc-bmi-btn').onclick = () => {
-  const w = parseFloat(document.getElementById('weight-input').value);
-  const h = parseFloat(document.getElementById('height-input').value) / 100;
-  if (w > 0 && h > 0) {
-    document.getElementById('bmi-result').textContent = `BMI: ${(w / (h * h)).toFixed(1)}`;
-  }
-};
-
-document.getElementById('save-measure-btn').onclick = () => {
-  appData.bodyMetrics = {
-    shoulders: document.getElementById('m-shoulders').value,
-    upperBust: document.getElementById('m-upper-bust') ? document.getElementById('m-upper-bust').value : '',
-    lowerBust: document.getElementById('m-lower-bust') ? document.getElementById('m-lower-bust').value : '',
-    chest: document.getElementById('m-chest') ? document.getElementById('m-chest').value : '',
-    waist: document.getElementById('m-waist').value,
-    hips: document.getElementById('m-hips').value,
-    thighs: document.getElementById('m-thighs').value,
-    calves: document.getElementById('m-calves').value,
-    upperArm: document.getElementById('m-upper-arm').value,
-    lowerArm: document.getElementById('m-lower-arm').value
+const calcBmiBtn = document.getElementById('calc-bmi-btn');
+if (calcBmiBtn) {
+  calcBmiBtn.onclick = () => {
+    const w = parseFloat(document.getElementById('weight-input').value);
+    const h = parseFloat(document.getElementById('height-input').value) / 100;
+    if (w > 0 && h > 0) {
+      document.getElementById('bmi-result').textContent = `BMI: ${(w / (h * h)).toFixed(1)}`;
+    }
   };
-  saveAllData();
-  showToast('Body metrics saved! 📏✨');
-};
+}
 
-document.getElementById('add-water-btn').onclick = () => {
-  appData.waterCount = (appData.waterCount || 0) + 1;
-  saveAllData();
-  updateWaterProgress();
-  updateWellnessCharts();
-  showToast('Stay hydrated! ✨');
-};
+const saveMeasureBtn = document.getElementById('save-measure-btn');
+if (saveMeasureBtn) {
+  saveMeasureBtn.onclick = () => {
+    appData.bodyMetrics = {
+      shoulders: document.getElementById('m-shoulders').value,
+      upperBust: document.getElementById('m-upper-bust') ? document.getElementById('m-upper-bust').value : '',
+      lowerBust: document.getElementById('m-lower-bust') ? document.getElementById('m-lower-bust').value : '',
+      chest: document.getElementById('m-chest') ? document.getElementById('m-chest').value : '',
+      waist: document.getElementById('m-waist').value,
+      hips: document.getElementById('m-hips').value,
+      thighs: document.getElementById('m-thighs').value,
+      calves: document.getElementById('m-calves').value,
+      upperArm: document.getElementById('m-upper-arm').value,
+      lowerArm: document.getElementById('m-lower-arm').value
+    };
+    saveAllData();
+    showToast('Body metrics saved! 📏✨');
+  };
+}
 
-document.getElementById('sub-water-btn').onclick = () => {
-  if (appData.waterCount && appData.waterCount > 0) {
-    appData.waterCount -= 1;
+const addWaterBtn = document.getElementById('add-water-btn');
+if (addWaterBtn) {
+  addWaterBtn.onclick = () => {
+    appData.waterCount = (appData.waterCount || 0) + 1;
     saveAllData();
     updateWaterProgress();
     updateWellnessCharts();
-    showToast('Water log reduced 💧');
-  }
-};
+    showToast('Stay hydrated! ✨');
+  };
+}
 
-document.getElementById('log-calorie-btn').onclick = () => {
-  const cal = parseInt(document.getElementById('calorie-input').value);
-  if (!isNaN(cal)) {
-    appData.calories = (appData.calories || 0) + cal;
+const subWaterBtn = document.getElementById('sub-water-btn');
+if (subWaterBtn) {
+  subWaterBtn.onclick = () => {
+    if (appData.waterCount && appData.waterCount > 0) {
+      appData.waterCount -= 1;
+      saveAllData();
+      updateWaterProgress();
+      updateWellnessCharts();
+      showToast('Water log reduced 💧');
+    }
+  };
+}
+
+const logCalorieBtn = document.getElementById('log-calorie-btn');
+if (logCalorieBtn) {
+  logCalorieBtn.onclick = () => {
+    const cal = parseInt(document.getElementById('calorie-input').value);
+    if (!isNaN(cal)) {
+      appData.calories = (appData.calories || 0) + cal;
+      saveAllData();
+      document.getElementById('calorie-display').textContent = `Logged Today: ${appData.calories} kcal`;
+      document.getElementById('calorie-input').value = '';
+      updateWellnessCharts();
+      showToast('Calories logged! ✨');
+    }
+  };
+}
+
+const resetCalorieBtn = document.getElementById('reset-calorie-btn');
+if (resetCalorieBtn) {
+  resetCalorieBtn.onclick = () => {
+    appData.calories = 0;
     saveAllData();
-    document.getElementById('calorie-display').textContent = `Logged Today: ${appData.calories} kcal`;
-    document.getElementById('calorie-input').value = '';
+    document.getElementById('calorie-display').textContent = `Logged Today: 0 kcal`;
     updateWellnessCharts();
-    showToast('Calories logged! ✨');
-  }
-};
-
-document.getElementById('reset-calorie-btn').onclick = () => {
-  appData.calories = 0;
-  saveAllData();
-  document.getElementById('calorie-display').textContent = `Logged Today: 0 kcal`;
-  updateWellnessCharts();
-  showToast('Calorie log reset 🔄');
-};
+    showToast('Calorie log reset 🔄');
+  };
+}
 
 function updateWaterProgress() {
   const count = appData.waterCount || 0;
-  document.getElementById('water-count').textContent = `${count} / 8 Glasses`;
+  const countEl = document.getElementById('water-count');
+  if (countEl) countEl.textContent = `${count} / 8 Glasses`;
   const pct = Math.min((count / 8) * 100, 100);
   const bar = document.getElementById('water-progress-bar');
   if (bar) bar.style.width = `${pct}%`;
@@ -763,37 +863,42 @@ function selectPlan(planType) {
   const proceedBtn = document.getElementById('proceed-payment-btn');
 
   if (planType === 'monthly') {
-    monthlyCard.classList.add('selected');
-    annualCard.classList.remove('selected');
+    if (monthlyCard) monthlyCard.classList.add('selected');
+    if (annualCard) annualCard.classList.remove('selected');
     selectedPlan = { type: 'monthly', price: 299, name: 'Monthly Pass' };
-    proceedBtn.textContent = 'Proceed to Payment (₹299) ✨';
+    if (proceedBtn) proceedBtn.textContent = 'Proceed to Payment (₹299) ✨';
   } else {
-    annualCard.classList.add('selected');
-    monthlyCard.classList.remove('selected');
+    if (annualCard) annualCard.classList.add('selected');
+    if (monthlyCard) monthlyCard.classList.remove('selected');
     selectedPlan = { type: 'annual', price: 1499, name: 'Annual Pro ✨' };
-    proceedBtn.textContent = 'Proceed to Payment (₹1,499) ✨';
+    if (proceedBtn) proceedBtn.textContent = 'Proceed to Payment (₹1,499) ✨';
   }
 }
 
 function openPaymentModal() {
-  document.getElementById('pro-modal').classList.add('hidden');
-  document.getElementById('payment-modal').classList.remove('hidden');
-  document.getElementById('payment-plan-summary').textContent = `Selected Plan: ${selectedPlan.name} (₹${selectedPlan.price.toLocaleString()})`;
+  const proModal = document.getElementById('pro-modal');
+  const payModal = document.getElementById('payment-modal');
+  const summaryEl = document.getElementById('payment-plan-summary');
+
+  if (proModal) proModal.classList.add('hidden');
+  if (payModal) payModal.classList.remove('hidden');
+  if (summaryEl) summaryEl.textContent = `Selected Plan: ${selectedPlan.name} (₹${selectedPlan.price.toLocaleString()})`;
 }
 
 function closePaymentModal() {
-  document.getElementById('payment-modal').classList.add('hidden');
+  const payModal = document.getElementById('payment-modal');
+  if (payModal) payModal.classList.add('hidden');
 }
 
 function togglePayMethod(method) {
   const upiForm = document.getElementById('upi-form');
   const cardForm = document.getElementById('card-form');
   if (method === 'upi') {
-    upiForm.classList.remove('hidden');
-    cardForm.classList.add('hidden');
+    if (upiForm) upiForm.classList.remove('hidden');
+    if (cardForm) cardForm.classList.add('hidden');
   } else {
-    cardForm.classList.remove('hidden');
-    upiForm.classList.add('hidden');
+    if (cardForm) cardForm.classList.remove('hidden');
+    if (upiForm) upiForm.classList.add('hidden');
   }
 }
 
@@ -815,48 +920,56 @@ const aiKnowledgeBase = [
   { keywords: ['workout', 'muscle', 'gym', 'chest', 'biceps'], response: "Focus on progressive overload and hit 1.6g-2g of protein per kg of body weight for optimal recovery! 💪" }
 ];
 
-document.getElementById('ai-send-btn').onclick = () => {
-  const inputEl = document.getElementById('ai-user-input');
-  const userText = inputEl.value.trim().toLowerCase();
-  if (!userText) return;
+const aiSendBtn = document.getElementById('ai-send-btn');
+if (aiSendBtn) {
+  aiSendBtn.onclick = () => {
+    const inputEl = document.getElementById('ai-user-input');
+    const userText = inputEl ? inputEl.value.trim().toLowerCase() : '';
+    if (!userText) return;
 
-  const chatContainer = document.getElementById('ai-chat-box');
-  const userMsg = document.createElement('div');
-  userMsg.className = 'ai-message user';
-  userMsg.textContent = inputEl.value;
-  chatContainer.appendChild(userMsg);
-  inputEl.value = '';
-  chatContainer.scrollTop = chatContainer.scrollHeight;
+    const chatContainer = document.getElementById('ai-chat-box');
+    if (chatContainer) {
+      const userMsg = document.createElement('div');
+      userMsg.className = 'ai-message user';
+      userMsg.textContent = inputEl.value;
+      chatContainer.appendChild(userMsg);
+      inputEl.value = '';
+      chatContainer.scrollTop = chatContainer.scrollHeight;
 
-  setTimeout(() => {
-    let matchedResponse = "That's a great goal! Keep tracking your daily habits and progress in AuraFlow to build momentum. ✨";
-    for (let item of aiKnowledgeBase) {
-      if (item.keywords.some(kw => userText.includes(kw))) {
-        matchedResponse = item.response;
-        break;
-      }
+      setTimeout(() => {
+        let matchedResponse = "That's a great goal! Keep tracking your daily habits and progress in AuraFlow to build momentum. ✨";
+        for (let item of aiKnowledgeBase) {
+          if (item.keywords.some(kw => userText.includes(kw))) {
+            matchedResponse = item.response;
+            break;
+          }
+        }
+        const botMsg = document.createElement('div');
+        botMsg.className = 'ai-message bot';
+        botMsg.textContent = `⚡ ${matchedResponse}`;
+        chatContainer.appendChild(botMsg);
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+      }, 800);
     }
-    const botMsg = document.createElement('div');
-    botMsg.className = 'ai-message bot';
-    botMsg.textContent = `⚡ ${matchedResponse}`;
-    chatContainer.appendChild(botMsg);
-    chatContainer.scrollTop = chatContainer.scrollHeight;
-  }, 800);
-};
+  };
+}
 
-document.getElementById('save-journal-btn').onclick = () => {
-  const title = document.getElementById('journal-title').value;
-  const mood = document.getElementById('journal-mood').value;
-  const content = document.getElementById('journal-content').value;
-  if (!content) return;
+const saveJournalBtn = document.getElementById('save-journal-btn');
+if (saveJournalBtn) {
+  saveJournalBtn.onclick = () => {
+    const title = document.getElementById('journal-title').value;
+    const mood = document.getElementById('journal-mood').value;
+    const content = document.getElementById('journal-content').value;
+    if (!content) return;
 
-  appData.journals.push({ id: Date.now(), title: title || 'Reflection', mood, content });
-  saveAllData();
-  renderJournals();
-  document.getElementById('journal-title').value = '';
-  document.getElementById('journal-content').value = '';
-  showToast('Journal saved! ✨');
-};
+    appData.journals.push({ id: Date.now(), title: title || 'Reflection', mood, content });
+    saveAllData();
+    renderJournals();
+    document.getElementById('journal-title').value = '';
+    document.getElementById('journal-content').value = '';
+    showToast('Journal saved! ✨');
+  };
+}
 
 function renderJournals() {
   const grid = document.getElementById('journal-grid');
@@ -869,22 +982,6 @@ function renderJournals() {
     grid.appendChild(card);
   });
 }
-
-document.getElementById('export-csv-btn').onclick = () => {
-  let csvContent = "data:text/csv;charset=utf-8,Category,Detail,Value\n";
-  (appData.todos || []).forEach(t => { csvContent += `Task,"${t.text}",Pending\n`; });
-  (appData.finances || []).forEach(f => { csvContent += `Finance,"${f.desc}",₹${f.amount} (${f.type})\n`; });
-  (appData.journals || []).forEach(j => { csvContent += `Journal,"${j.title}",${j.mood}\n`; });
-
-  const encodedUri = encodeURI(csvContent);
-  const link = document.createElement("a");
-  link.setAttribute("href", encodedUri);
-  link.setAttribute("download", "AuraFlow_Sanctuary_Backup.csv");
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  showToast('CSV Backup Downloaded! 📄✨');
-};
 
 // HELPERS
 function showToast(msg) {

@@ -37,9 +37,32 @@ body.theme-masculine {
 /* OTHER THEME VARIATIONS */
 body.theme-mint { --bg-app: #F0FDF4; --well-primary: #10B981; }
 body.theme-sunset { --bg-app: #FFF7ED; --prod-primary: #F97316; }
+
+/* MIDNIGHT GALAXY (DARK MODE) OVERRIDES */
 body.theme-midnight {
-  --bg-app: #0F172A; --sidebar-bg: #1E293B;
-  --text-dark: #F8FAFC; --text-muted: #94A3B8; --border-color: #334155;
+  --bg-app: #0F172A; 
+  --sidebar-bg: #1E293B;
+  --text-dark: #F8FAFC; 
+  --text-muted: #94A3B8; 
+  --border-color: #334155;
+
+  --prod-bg: #1E293B;
+  --fin-bg: #1E293B;
+  --well-bg: #1E293B;
+}
+
+/* DARK MODE SECTION HEADER CONTRAST FIX */
+body.theme-midnight .section-header h1,
+body.theme-midnight .section-header p,
+body.theme-midnight .section-header h2,
+body.theme-midnight .card h1,
+body.theme-midnight .card h2,
+body.theme-midnight .card h3,
+body.theme-midnight .card h4,
+body.theme-midnight .card p,
+body.theme-midnight .card label,
+body.theme-midnight .card span {
+  color: #F8FAFC !important;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
@@ -234,3 +257,55 @@ button { border: none; padding: 10px 16px; border-radius: 8px; font-weight: bold
 .ai-message { max-width: 80%; padding: 10px 14px; border-radius: 12px; font-size: 0.9rem; line-height: 1.4; }
 .ai-message.bot { background: var(--well-bg); color: #2D3436; border-left: 4px solid var(--well-primary); align-self: flex-start; }
 .ai-message.user { background: #6C5CE7; color: #FFFFFF; align-self: flex-end; }
+/* FIX DARK MODE HEADING & TEXT VISIBILITY */
+body.theme-midnight .section-header,
+body.theme-midnight .prod-header,
+body.theme-midnight .fin-header,
+body.theme-midnight .well-header,
+body.theme-midnight .settings-header {
+  background: #1E293B !important;
+  color: #F8FAFC !important;
+}
+
+/* MASCULINE SLATE BLUE THEME OVERRIDE */
+body.theme-masculine {
+  --bg-app: #F0F4F8;
+  --sidebar-bg: #FFFFFF;
+  --text-dark: #1E293B;
+  --text-muted: #64748B;
+  --border-color: #CBD5E1;
+
+  /* Task & Accent Colors */
+  --prod-primary: #2563EB;
+  --prod-accent: #3B82F6;
+
+  /* Wellness & Buttons Override */
+  --well-bg: #EBF8FF;
+  --well-primary: #2563EB !important;
+  --well-accent: #3B82F6 !important;
+}
+
+/* Force buttons, borders and badges to adopt Slate Blue when theme-masculine is active */
+body.theme-masculine .well-card {
+  border-top-color: #2563EB !important;
+}
+
+body.theme-masculine .well-header {
+  background: #EBF8FF !important;
+  border-left-color: #2563EB !important;
+}
+
+body.theme-masculine .btn-well,
+body.theme-masculine .btn-sparkle {
+  background: linear-gradient(135deg, #2563EB, #1D4ED8) !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3) !important;
+}
+
+body.theme-masculine .avatar {
+  border-color: #2563EB !important;
+}
+
+body.theme-masculine .auth-card {
+  border-color: #2563EB !important;
+}
