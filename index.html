@@ -20,57 +20,40 @@
         <p>Step into your personalized personal growth sanctuary</p>
       </div>
 
-      <!-- Auth Toggle Tabs -->
-      <div class="auth-tabs">
-        <button id="tab-login-btn" class="auth-tab-btn active">Log In</button>
-        <button id="tab-signup-btn" class="auth-tab-btn">Sign Up</button>
-      </div>
-
-      <!-- Sign Up Form -->
-      <form id="signup-form" class="auth-form">
-        <div class="form-group">
-          <label>Full Name ✨</label>
-          <input type="text" id="signup-name" placeholder="e.g. Ishita Sarkar" required />
-        </div>
-        <div class="form-group">
-          <label>Email Address 📧</label>
-          <input type="email" id="signup-email" placeholder="user@example.com" required />
-        </div>
-        <div class="form-group">
-          <label>Password 🔑</label>
-          <input type="password" id="signup-pass" placeholder="••••••••" required />
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Age 🎂</label>
-            <input type="number" id="signup-age" placeholder="21" required />
-          </div>
-          <div class="form-group">
-            <label>Gender 👤</label>
-            <select id="signup-gender" required>
-              <option value="female">Female 🌸</option>
-              <option value="male">Male ⚡</option>
-              <option value="other">Other 🌟</option>
-            </select>
-          </div>
-        </div>
-        <button type="submit" class="btn-sparkle">Enter Sanctuary ✨</button>
-      </form>
-
-      <!-- Log In Form -->
-      <form id="login-form" class="auth-form hidden">
-        <div class="form-group">
-          <label>Email Address 📧</label>
-          <input type="email" id="login-email" placeholder="user@example.com" required />
-        </div>
-        <div class="form-group">
-          <label>Password 🔑</label>
-          <input type="password" id="login-pass" placeholder="••••••••" required />
-        </div>
-        <button type="submit" class="btn-sparkle">Welcome Back ✨</button>
-      </form>
-    </div>
+<!-- Auth Container -->
+<div id="auth-container" class="auth-box">
+  <!-- Tabs to switch modes -->
+  <div class="auth-tabs">
+    <button type="button" id="tab-login" class="active" onclick="switchAuthMode('login')">Log In</button>
+    <button type="button" id="tab-signup" onclick="switchAuthMode('signup')">Sign Up</button>
   </div>
+
+  <!-- LOGIN FORM (Only Email & Password) -->
+  <form id="login-form" onsubmit="handleLogin(event)">
+    <h3>Welcome Back ✨</h3>
+    <input type="email" id="login-email" placeholder="Email Address" required />
+    <input type="password" id="login-password" placeholder="Password" required />
+    <button type="submit" class="btn-primary">Log In</button>
+  </form>
+
+  <!-- SIGNUP FORM (Full Details) -->
+  <form id="signup-form" style="display: none;" onsubmit="handleSignup(event)">
+    <h3>Create Your Aura Account 🌸</h3>
+    <input type="text" id="signup-name" placeholder="Full Name" required />
+    <input type="email" id="signup-email" placeholder="Email Address" required />
+    <input type="password" id="signup-password" placeholder="Password" required />
+    <input type="number" id="signup-age" placeholder="Age" min="10" max="100" required />
+    
+    <select id="signup-gender" required>
+      <option value="" disabled selected>Select Gender</option>
+      <option value="female">Female</option>
+      <option value="male">Male</option>
+      <option value="other">Other</option>
+    </select>
+
+    <button type="submit" class="btn-primary">Sign Up</button>
+  </form>
+</div>
 
   <!-- APP SHELL -->
   <div class="app-container">

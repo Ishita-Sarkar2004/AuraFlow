@@ -56,91 +56,86 @@ function checkAuth() {
     updateBrandTitle();
   }
 
-  document.getElementById('tab-login-btn').onclick = () => {
+document.getElementById('tab-login-btn').onclick = () => {
     document.getElementById('tab-login-btn').classList.add('active');
     document.getElementById('tab-signup-btn').classList.remove('active');
     document.getElementById('login-form').classList.remove('hidden');
     document.getElementById('signup-form').classList.add('hidden');
-  };
+};
 
-  document.getElementById('tab-signup-btn').onclick = () => {
+document.getElementById('tab-signup-btn').onclick = () => {
     document.getElementById('tab-signup-btn').classList.add('active');
     document.getElementById('tab-login-btn').classList.remove('active');
     document.getElementById('signup-form').classList.remove('hidden');
     document.getElementById('login-form').classList.add('hidden');
-  };
+};
 
-  // SIGNUP FORM HANDLER
-  document.getElementById('signup-form').onsubmit = (e) => {
+// SIGNUP FORM HANDLER (Collects Name, Email, Age, Gender)
+document.getElementById('signup-form').onsubmit = (e) => {
     e.preventDefault();
     const email = document.getElementById('signup-email').value.trim().toLowerCase();
     const genderChoice = document.getElementById('signup-gender').value;
 
+    // Check if user already exists
+    if (userDatabase[email]) {
+        alert("Account already exists! Please log in instead.");
+        document.getElementById('tab-login-btn').click();
+        return;
+    }
+
     currentUser = {
-      name: document.getElementById('signup-name').value,
-      email: email,
-      age: document.getElementById('signup-age').value,
-      gender: genderChoice,
-      photo: null,
-      isPro: false
+        name: document.getElementById('signup-name').value,
+        email: email,
+        age: document.getElementById('signup-age').value,
+        gender: genderChoice,
+        photo: null,
+        isPro: false
     };
 
     activeUserEmail = email;
-
-    // Reset default sanctuary data for new user
-    appData = {
-      todos: [], habits: [], events: [], finances: [], investments: [],
-      journals: [], routines: [], workouts: [], bodyMetrics: {},
-      waterCount: 0, calories: 0,
-      theme: genderChoice === 'male' ? 'theme-masculine' : 'theme-default'
+    
+    // Initialize user in database
+    userDatabase[activeUserEmail] = {
+        profile: currentUser,
+        sanctuaryData: appData || {}
     };
 
-    saveAllData();
-    portal.classList.add('hidden');
-    applyStoredTheme();
-    updateUserBadge();
-    applyGenderContext();
-    updateBrandTitle();
-    renderAllData();
-    showToast('Welcome to AuraFlow! ✨');
-  };
+    localStorage.setItem('auraflow_active_email', activeUserEmail);
+    localStorage.setItem('auraflow_db', JSON.stringify(userDatabase));
 
-  // LOGIN FORM HANDLER (Retrieves saved user data by Email!)
-  document.getElementById('login-form').onsubmit = (e) => {
+    checkAuth();
+    renderAllData();
+};
+
+// LOGIN FORM HANDLER (Only Verifies Email & Existing Profile)
+document.getElementById('login-form').onsubmit = (e) => {
     e.preventDefault();
     const email = document.getElementById('login-email').value.trim().toLowerCase();
 
-    if (userDatabase[email]) {
-      activeUserEmail = email;
-      loadActiveUserData();
-      showToast('Welcome back to your Sanctuary! ✨');
-    } else {
-      // Create new account if email doesn't exist yet
-      currentUser = { name: email.split('@')[0], email: email, age: '22', gender: 'female', photo: null, isPro: false };
-      activeUserEmail = email;
-      appData.theme = 'theme-default';
-      showToast('Account created! Welcome back! ✨');
+    if (!userDatabase[email]) {
+        alert("No profile found with this email. Please sign up first!");
+        document.getElementById('tab-signup-btn').click();
+        return;
     }
 
-    saveAllData();
-    portal.classList.add('hidden');
-    applyStoredTheme();
-    updateUserBadge();
-    applyGenderContext();
-    updateBrandTitle();
-    renderAllData();
-  };
-}
+    activeUserEmail = email;
+    currentUser = userDatabase[activeUserEmail].profile;
+    appData = userDatabase[activeUserEmail].sanctuaryData || {};
 
-function updateBrandTitle() {
-  const proTag = document.getElementById('pro-tag');
-  if (currentUser && currentUser.isPro) {
-    proTag.classList.remove('hidden');
-    proTag.style.background = 'linear-gradient(135deg, #00B894, #55E6C1)';
-    proTag.textContent = 'PRO';
-  } else {
-    proTag.classList.add('hidden');
-  }
+    localStorage.setItem('auraflow_active_email', activeUserEmail);
+
+    checkAuth();
+    renderAllData();
+};
+
+function handleLogout() {
+    // 1. Clear session key ONLY (DO NOT delete userDatabase or photo!)
+    localStorage.removeItem('auraflow_active_email');
+    activeUserEmail = null;
+    currentUser = null;
+
+    // 2. Hide dashboard & show Auth Portal
+    checkAuth();
 }
 
 // 2. SIDEBAR DRAWER TOGGLE
