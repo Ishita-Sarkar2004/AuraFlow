@@ -3,10 +3,7 @@
 // ==========================================
 
 // --- STATE MANAGEMENT ---
-// Global database mapping users by email address
 let userDatabase = JSON.parse(localStorage.getItem('auraFlowUserDatabase')) || {};
-
-// Active user session email
 let activeUserEmail = localStorage.getItem('auraFlowActiveEmail') || null;
 
 let currentUser = null;
@@ -42,100 +39,109 @@ document.addEventListener('DOMContentLoaded', () => {
   applyStoredTheme();
   renderAllData();
   initSidebarDrawer();
+  initAuthFormHandlers();
 });
 
-// 1. AUTHENTICATION & EMAIL-BASED PERSISTENCE
+// 1. AUTHENTICATION & PORTAL MANAGEMENT
 function checkAuth() {
   const portal = document.getElementById('auth-portal');
   if (!currentUser) {
-    portal.classList.remove('hidden');
+    if (portal) portal.classList.remove('hidden');
   } else {
-    portal.classList.add('hidden');
+    if (portal) portal.classList.add('hidden');
     updateUserBadge();
     applyGenderContext();
     updateBrandTitle();
   }
+}
 
-document.getElementById('tab-login-btn').onclick = () => {
-    document.getElementById('tab-login-btn').classList.add('active');
-    document.getElementById('tab-signup-btn').classList.remove('active');
-    document.getElementById('login-form').classList.remove('hidden');
-    document.getElementById('signup-form').classList.add('hidden');
-};
+function switchAuthMode(mode) {
+  const loginForm = document.getElementById('login-form');
+  const signupForm = document.getElementById('signup-form');
+  const tabLogin = document.getElementById('tab-login');
+  const tabSignup = document.getElementById('tab-signup');
 
-document.getElementById('tab-signup-btn').onclick = () => {
-    document.getElementById('tab-signup-btn').classList.add('active');
-    document.getElementById('tab-login-btn').classList.remove('active');
-    document.getElementById('signup-form').classList.remove('hidden');
-    document.getElementById('login-form').classList.add('hidden');
-};
+  if (mode === 'login') {
+    if (tabLogin) tabLogin.classList.add('active');
+    if (tabSignup) tabSignup.classList.remove('active');
+    if (loginForm) loginForm.classList.remove('hidden');
+    if (signupForm) signupForm.classList.add('hidden');
+  } else {
+    if (tabSignup) tabSignup.classList.add('active');
+    if (tabLogin) tabLogin.classList.remove('active');
+    if (signupForm) signupForm.classList.remove('hidden');
+    if (loginForm) loginForm.classList.add('hidden');
+  }
+}
 
-// SIGNUP FORM HANDLER (Collects Name, Email, Age, Gender)
-document.getElementById('signup-form').onsubmit = (e) => {
-    e.preventDefault();
-    const email = document.getElementById('signup-email').value.trim().toLowerCase();
-    const genderChoice = document.getElementById('signup-gender').value;
+function initAuthFormHandlers() {
+  const signupForm = document.getElementById('signup-form');
+  const loginForm = document.getElementById('login-form');
 
-    // Check if user already exists
-    if (userDatabase[email]) {
+  // SIGNUP FORM HANDLER
+  if (signupForm) {
+    signupForm.onsubmit = (e) => {
+      e.preventDefault();
+      const email = document.getElementById('signup-email').value.trim().toLowerCase();
+      const genderChoice = document.getElementById('signup-gender').value;
+
+      if (userDatabase[email]) {
         alert("Account already exists! Please log in instead.");
-        document.getElementById('tab-login-btn').click();
+        switchAuthMode('login');
         return;
-    }
+      }
 
-    currentUser = {
+      currentUser = {
         name: document.getElementById('signup-name').value,
         email: email,
         age: document.getElementById('signup-age').value,
         gender: genderChoice,
         photo: null,
         isPro: false
-    };
+      };
 
-    activeUserEmail = email;
-    
-    // Initialize user in database
-    userDatabase[activeUserEmail] = {
+      activeUserEmail = email;
+
+      userDatabase[activeUserEmail] = {
         profile: currentUser,
         sanctuaryData: appData || {}
+      };
+
+      saveAllData();
+      checkAuth();
+      renderAllData();
     };
+  }
 
-    localStorage.setItem('auraflow_active_email', activeUserEmail);
-    localStorage.setItem('auraflow_db', JSON.stringify(userDatabase));
+  // LOGIN FORM HANDLER
+  if (loginForm) {
+    loginForm.onsubmit = (e) => {
+      e.preventDefault();
+      const email = document.getElementById('login-email').value.trim().toLowerCase();
 
-    checkAuth();
-    renderAllData();
-};
-
-// LOGIN FORM HANDLER (Only Verifies Email & Existing Profile)
-document.getElementById('login-form').onsubmit = (e) => {
-    e.preventDefault();
-    const email = document.getElementById('login-email').value.trim().toLowerCase();
-
-    if (!userDatabase[email]) {
+      if (!userDatabase[email]) {
         alert("No profile found with this email. Please sign up first!");
-        document.getElementById('tab-signup-btn').click();
+        switchAuthMode('signup');
         return;
-    }
+      }
 
-    activeUserEmail = email;
-    currentUser = userDatabase[activeUserEmail].profile;
-    appData = userDatabase[activeUserEmail].sanctuaryData || {};
+      activeUserEmail = email;
+      currentUser = userDatabase[activeUserEmail].profile;
+      appData = userDatabase[activeUserEmail].sanctuaryData || appData;
 
-    localStorage.setItem('auraflow_active_email', activeUserEmail);
-
-    checkAuth();
-    renderAllData();
-};
+      saveAllData();
+      checkAuth();
+      renderAllData();
+    };
+  }
+}
 
 function handleLogout() {
-    // 1. Clear session key ONLY (DO NOT delete userDatabase or photo!)
-    localStorage.removeItem('auraflow_active_email');
-    activeUserEmail = null;
-    currentUser = null;
-
-    // 2. Hide dashboard & show Auth Portal
-    checkAuth();
+  saveAllData(); // Save data safely first
+  activeUserEmail = null;
+  currentUser = null;
+  localStorage.removeItem('auraFlowActiveEmail'); // Clears session pointer ONLY!
+  checkAuth();
 }
 
 // 2. SIDEBAR DRAWER TOGGLE
@@ -150,7 +156,7 @@ function initSidebarDrawer() {
   }
 }
 
-// 3. OPTIMIZED PROFILE EDIT & COMPRESSED AVATAR UPLOAD
+// 3. PROFILE EDIT & COMPRESSED AVATAR UPLOAD
 function openProfileModal() {
   if (!currentUser) return;
   document.getElementById('edit-name').value = currentUser.name || '';
@@ -173,18 +179,14 @@ document.getElementById('edit-profile-form').onsubmit = function(e) {
   if (photoInput.files && photoInput.files[0]) {
     const reader = new FileReader();
     reader.onload = function(evt) {
-      // Compress image using an HTML5 Canvas to prevent LocalStorage memory overflow
       const img = new Image();
       img.onload = function() {
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
-        
-        // Resize to 150x150 thumbnail
         canvas.width = 150;
         canvas.height = 150;
         ctx.drawImage(img, 0, 0, 150, 150);
         
-        // Save ultra-lightweight JPEG string
         currentUser.photo = canvas.toDataURL('image/jpeg', 0.8);
         saveAllData();
         updateUserBadge();
@@ -224,6 +226,13 @@ function updateUserBadge() {
   }
 }
 
+function updateBrandTitle() {
+  if (currentUser && currentUser.isPro) {
+    const tag = document.getElementById('pro-tag');
+    if (tag) tag.classList.remove('hidden');
+  }
+}
+
 // DYNAMIC GENDER & ROUTINE ADAPTATION
 function applyGenderContext() {
   if (!currentUser) return;
@@ -245,13 +254,14 @@ function applyGenderContext() {
     document.getElementById('fitness-card-title').textContent = '💪 Athletic Fitness, Fasting & Calories';
     if (!currentUser.photo) document.getElementById('user-avatar-emoji').textContent = '⚡';
 
-    // MALE DYNAMIC ROUTINE DROPDOWN (Includes Grooming/Beard)
-    routineCatSelect.innerHTML = `
-      <option value="Grooming">Grooming & Beard 🧔</option>
-      <option value="Skincare">Skincare 🧴</option>
-      <option value="Body Care">Body Care 🌸</option>
-      <option value="Hair Care">Hair Care 💇‍♂️</option>
-    `;
+    if (routineCatSelect) {
+      routineCatSelect.innerHTML = `
+        <option value="Grooming">Grooming & Beard 🧔</option>
+        <option value="Skincare">Skincare 🧴</option>
+        <option value="Body Care">Body Care 🌸</option>
+        <option value="Hair Care">Hair Care 💇‍♂️</option>
+      `;
+    }
   } else {
     if (femaleCard) femaleCard.classList.remove('hidden');
     if (femaleBustGroup) femaleBustGroup.classList.remove('hidden');
@@ -263,12 +273,13 @@ function applyGenderContext() {
     document.getElementById('fitness-card-title').textContent = '🏃 Fitness, Fasting & Calories';
     if (!currentUser.photo) document.getElementById('user-avatar-emoji').textContent = '✨';
 
-    // FEMALE DYNAMIC ROUTINE DROPDOWN (Strictly No Beard Option!)
-    routineCatSelect.innerHTML = `
-      <option value="Skincare">Skincare 🧴</option>
-      <option value="Body Care">Body Care 🌸</option>
-      <option value="Hair Care">Hair Care 💆‍♀️</option>
-    `;
+    if (routineCatSelect) {
+      routineCatSelect.innerHTML = `
+        <option value="Skincare">Skincare 🧴</option>
+        <option value="Body Care">Body Care 🌸</option>
+        <option value="Hair Care">Hair Care 💆‍♀️</option>
+      `;
+    }
   }
 }
 
@@ -286,11 +297,7 @@ function applyStoredTheme() {
   }
 }
 
-document.getElementById('logout-btn').onclick = () => {
-  activeUserEmail = null;
-  localStorage.removeItem('auraFlowActiveEmail'); // Clears session, keeps user Database safe!
-  location.reload();
-};
+document.getElementById('logout-btn').onclick = handleLogout;
 
 document.getElementById('reset-data-btn').onclick = () => {
   if (confirm('Are you sure you want to reset all sanctuary data for this account?')) {
@@ -313,7 +320,8 @@ function initTabNavigation() {
       navBtns.forEach(b => b.classList.remove('active'));
       tabViews.forEach(v => v.classList.remove('active'));
       btn.classList.add('active');
-      document.getElementById(btn.dataset.target).classList.add('active');
+      const target = document.getElementById(btn.dataset.target);
+      if (target) target.classList.add('active');
     });
   });
 
@@ -338,8 +346,9 @@ document.getElementById('add-todo-btn').onclick = () => {
 
 function renderTodos() {
   const list = document.getElementById('todo-list');
+  if (!list) return;
   list.innerHTML = '';
-  appData.todos.forEach(todo => {
+  (appData.todos || []).forEach(todo => {
     const li = document.createElement('li');
     li.innerHTML = `<span>${todo.text}</span> <button onclick="deleteTodo(${todo.id})">🗑️</button>`;
     list.appendChild(li);
@@ -364,8 +373,9 @@ document.getElementById('add-habit-btn').onclick = () => {
 
 function renderHabits() {
   const list = document.getElementById('habit-list');
+  if (!list) return;
   list.innerHTML = '';
-  appData.habits.forEach(habit => {
+  (appData.habits || []).forEach(habit => {
     const li = document.createElement('li');
     li.innerHTML = `<span>${habit.text} (🔥 ${habit.streak} Days)</span> <button onclick="incrementStreak(${habit.id})">+1 Streak ✨</button>`;
     list.appendChild(li);
@@ -391,8 +401,9 @@ document.getElementById('add-event-btn').onclick = () => {
 
 function renderEvents() {
   const list = document.getElementById('event-list');
+  if (!list) return;
   list.innerHTML = '';
-  appData.events.forEach(ev => {
+  (appData.events || []).forEach(ev => {
     const li = document.createElement('li');
     li.innerHTML = `<span>📅 <b>${ev.date}:</b> ${ev.desc}</span>`;
     list.appendChild(li);
@@ -402,7 +413,9 @@ function renderEvents() {
 // 7. FINANCE
 let finChart;
 function initCharts() {
-  const ctx = document.getElementById('financeChart').getContext('2d');
+  const chartEl = document.getElementById('financeChart');
+  if (!chartEl) return;
+  const ctx = chartEl.getContext('2d');
   finChart = new Chart(ctx, {
     type: 'doughnut',
     data: { labels: ['Income', 'Expenses'], datasets: [{ data: [0, 0], backgroundColor: ['#00B894', '#FF7675'] }] }
@@ -424,9 +437,10 @@ document.getElementById('add-fin-btn').onclick = () => {
 
 function renderFinances() {
   const list = document.getElementById('fin-list');
+  if (!list) return;
   list.innerHTML = '';
   let inc = 0, exp = 0;
-  appData.finances.forEach(f => {
+  (appData.finances || []).forEach(f => {
     if (f.type === 'income') inc += f.amount;
     else exp += f.amount;
     const li = document.createElement('li');
@@ -453,8 +467,9 @@ document.getElementById('add-invest-btn').onclick = () => {
 
 function renderInvestments() {
   const list = document.getElementById('invest-list');
+  if (!list) return;
   list.innerHTML = '';
-  appData.investments.forEach(inv => {
+  (appData.investments || []).forEach(inv => {
     const li = document.createElement('li');
     li.innerHTML = `<span>${inv.name}</span> <b>Val: ₹${inv.returns}</b>`;
     list.appendChild(li);
@@ -484,8 +499,9 @@ document.getElementById('add-routine-btn').onclick = () => {
 
 function renderRoutines() {
   const list = document.getElementById('routine-checklist');
+  if (!list) return;
   list.innerHTML = '';
-  appData.routines.forEach(r => {
+  (appData.routines || []).forEach(r => {
     const li = document.createElement('li');
     li.innerHTML = `
       <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
@@ -525,8 +541,9 @@ document.getElementById('add-workout-btn').onclick = () => {
 
 function renderWorkouts() {
   const list = document.getElementById('workout-checklist');
+  if (!list) return;
   list.innerHTML = '';
-  appData.workouts.forEach(w => {
+  (appData.workouts || []).forEach(w => {
     const li = document.createElement('li');
     li.innerHTML = `
       <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
@@ -565,9 +582,9 @@ document.getElementById('calc-bmi-btn').onclick = () => {
 document.getElementById('save-measure-btn').onclick = () => {
   appData.bodyMetrics = {
     shoulders: document.getElementById('m-shoulders').value,
-    upperBust: document.getElementById('m-upper-bust').value,
-    lowerBust: document.getElementById('m-lower-bust').value,
-    chest: document.getElementById('m-chest').value,
+    upperBust: document.getElementById('m-upper-bust') ? document.getElementById('m-upper-bust').value : '',
+    lowerBust: document.getElementById('m-lower-bust') ? document.getElementById('m-lower-bust').value : '',
+    chest: document.getElementById('m-chest') ? document.getElementById('m-chest').value : '',
     waist: document.getElementById('m-waist').value,
     hips: document.getElementById('m-hips').value,
     thighs: document.getElementById('m-thighs').value,
@@ -621,10 +638,11 @@ function updateWaterProgress() {
   const count = appData.waterCount || 0;
   document.getElementById('water-count').textContent = `${count} / 8 Glasses`;
   const pct = Math.min((count / 8) * 100, 100);
-  document.getElementById('water-progress-bar').style.width = `${pct}%`;
+  const bar = document.getElementById('water-progress-bar');
+  if (bar) bar.style.width = `${pct}%`;
 }
 
-// 📊 DETAILED ANALYTICS CHARTS
+// ANALYTICS CHARTS
 let wellnessChart1, wellnessChart2;
 function initWellnessCharts() {
   const ctx1 = document.getElementById('wellnessChart1');
@@ -673,7 +691,7 @@ function updateWellnessCharts() {
   }
 }
 
-// --- PRO PLAN & PAYMENT ---
+// PRO PLAN & PAYMENT
 let selectedPlan = { type: 'annual', price: 1499, name: 'Annual Pro ✨' };
 
 function selectPlan(planType) {
@@ -726,7 +744,7 @@ function processPayment() {
   updateBrandTitle();
 }
 
-// --- AI COACH & JOURNALS ---
+// AI COACH & JOURNALS
 const aiKnowledgeBase = [
   { keywords: ['coding', 'study', 'exam', 'focus'], response: "To boost focus, try the Pomodoro Technique: 25 mins of deep focus followed by a 5 min break. Consistency beats intensity! ⚡" },
   { keywords: ['habit', 'streak', 'routine'], response: "Habit stacking works best! Pair a new habit with an existing one (e.g., 'After I drink my morning tea, I will write 1 journal entry'). ✨" },
@@ -779,8 +797,9 @@ document.getElementById('save-journal-btn').onclick = () => {
 
 function renderJournals() {
   const grid = document.getElementById('journal-grid');
+  if (!grid) return;
   grid.innerHTML = '';
-  appData.journals.forEach(j => {
+  (appData.journals || []).forEach(j => {
     const card = document.createElement('div');
     card.classList.add('card');
     card.innerHTML = `<h4>${j.title} <span>(${j.mood})</span></h4><p>${j.content}</p>`;
@@ -790,9 +809,9 @@ function renderJournals() {
 
 document.getElementById('export-csv-btn').onclick = () => {
   let csvContent = "data:text/csv;charset=utf-8,Category,Detail,Value\n";
-  appData.todos.forEach(t => { csvContent += `Task,"${t.text}",Pending\n`; });
-  appData.finances.forEach(f => { csvContent += `Finance,"${f.desc}",₹${f.amount} (${f.type})\n`; });
-  appData.journals.forEach(j => { csvContent += `Journal,"${j.title}",${j.mood}\n`; });
+  (appData.todos || []).forEach(t => { csvContent += `Task,"${t.text}",Pending\n`; });
+  (appData.finances || []).forEach(f => { csvContent += `Finance,"${f.desc}",₹${f.amount} (${f.type})\n`; });
+  (appData.journals || []).forEach(j => { csvContent += `Journal,"${j.title}",${j.mood}\n`; });
 
   const encodedUri = encodeURI(csvContent);
   const link = document.createElement("a");
@@ -807,12 +826,12 @@ document.getElementById('export-csv-btn').onclick = () => {
 // HELPERS
 function showToast(msg) {
   const toast = document.getElementById('toast');
+  if (!toast) return;
   toast.textContent = msg;
   toast.classList.remove('hidden');
   setTimeout(() => toast.classList.add('hidden'), 2500);
 }
 
-// SAVES PROFILE AND LOGS UNDER EMAIL DATABASE MAP
 function saveAllData() {
   if (activeUserEmail) {
     userDatabase[activeUserEmail] = {
@@ -835,6 +854,7 @@ function renderAllData() {
   renderWorkouts();
   updateWaterProgress();
   if (appData.calories) {
-    document.getElementById('calorie-display').textContent = `Logged Today: ${appData.calories} kcal`;
+    const calEl = document.getElementById('calorie-display');
+    if (calEl) calEl.textContent = `Logged Today: ${appData.calories} kcal`;
   }
 }
