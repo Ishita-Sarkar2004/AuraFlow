@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AuraFlow — Personal Growth & Productivity Suite</title>
+  <link rel="stylesheet" href="style.css" />
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="theme-default">
+
+  <!-- MAGICAL LOGIN / SIGNUP PORTAL -->
+  <div id="auth-portal" class="magical-auth-overlay">
+    <div class="stars-bg"></div>
+    <div class="auth-card">
+      <div class="auth-header">
+        <span class="sparkle-icon" id="auth-icon">✨</span>
+        <h2 id="auth-title">Welcome to AuraFlow</h2>
+        <p>Step into your personalized personal growth sanctuary</p>
+      </div>
+
+      <!-- Auth Toggle Tabs -->
+      <div class="auth-tabs">
+        <button id="tab-login-btn" class="auth-tab-btn active">Log In</button>
+        <button id="tab-signup-btn" class="auth-tab-btn">Sign Up</button>
+      </div>
+
+      <!-- Sign Up Form -->
+      <form id="signup-form" class="auth-form">
+        <div class="form-group">
+          <label>Full Name ✨</label>
+          <input type="text" id="signup-name" placeholder="e.g. Ishita Sarkar" required />
+        </div>
+        <div class="form-group">
+          <label>Email Address 📧</label>
+          <input type="email" id="signup-email" placeholder="user@example.com" required />
+        </div>
+        <div class="form-group">
+          <label>Password 🔑</label>
+          <input type="password" id="signup-pass" placeholder="••••••••" required />
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Age 🎂</label>
+            <input type="number" id="signup-age" placeholder="21" required />
+          </div>
+          <div class="form-group">
+            <label>Gender 👤</label>
+            <select id="signup-gender" required>
+              <option value="female">Female 🌸</option>
+              <option value="male">Male ⚡</option>
+              <option value="other">Other 🌟</option>
+            </select>
+          </div>
+        </div>
+        <button type="submit" class="btn-sparkle">Enter Sanctuary ✨</button>
+      </form>
+
+      <!-- Log In Form -->
+      <form id="login-form" class="auth-form hidden">
+        <div class="form-group">
+          <label>Email Address 📧</label>
+          <input type="email" id="login-email" placeholder="user@example.com" required />
+        </div>
+        <div class="form-group">
+          <label>Password 🔑</label>
+          <input type="password" id="login-pass" placeholder="••••••••" required />
+        </div>
+        <button type="submit" class="btn-sparkle">Welcome Back ✨</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- APP SHELL -->
+  <div class="app-container">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar" id="app-sidebar">
+      <div class="brand-header">
+        <h2 id="brand-heading">AuraFlow <span class="badge-pro hidden" id="pro-tag">PRO</span></h2>
+        <button id="toggle-drawer-btn" class="btn-icon" title="Toggle Drawer">☰</button>
+      </div>
+      
+      <div class="user-profile-badge clickable" id="profile-badge-btn" onclick="openProfileModal()" title="Click to edit profile">
+        <div class="avatar" id="user-avatar-container">
+          <span id="user-avatar-emoji">✨</span>
+          <img id="user-avatar-img" class="hidden" alt="Profile Avatar" />
+        </div>
+        <div class="user-info">
+          <h4 id="display-user-name">User</h4>
+          <span id="display-user-meta">Guest</span>
+        </div>
+      </div>
+
+      <nav class="nav-menu">
+        <button class="nav-btn active" data-target="tab-productivity">
+          <span class="nav-icon">⚡</span> <span class="nav-text">Task & Productivity</span>
+        </button>
+        <button class="nav-btn theme-finance" data-target="tab-finance">
+          <span class="nav-icon">💸</span> <span class="nav-text">Finance & Budget</span>
+        </button>
+        <button class="nav-btn theme-wellness" data-target="tab-wellness" id="nav-wellness-btn">
+          <span class="nav-icon">🌸</span> <span class="nav-text">Wellness & Lifestyle</span>
+        </button>
+        <button class="nav-btn theme-settings" data-target="tab-settings">
+          <span class="nav-icon">⚙️</span> <span class="nav-text">Settings & Sanctuary</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <button id="upgrade-pro-btn" class="btn-pro">✨ <span class="btn-text">Upgrade to Pro</span></button>
+      </div>
+    </aside>
+
+    <!-- Main Workspace -->
+    <main class="main-content">
+      
+      <!-- TAB 1: TASK & PRODUCTIVITY -->
+      <section id="tab-productivity" class="tab-view active">
+        <header class="section-header prod-header">
+          <h1>⚡ Task & Productivity Suite ✨</h1>
+          <p>Organize tasks, track daily habits with streaks, and plan your schedule.</p>
+        </header>
+
+        <div class="grid-layout">
+          <div class="card prod-card">
+            <h3>📝 Sparkle To-Do List</h3>
+            <div class="input-row">
+              <input type="text" id="todo-input" placeholder="Add a new goal..." />
+              <button id="add-todo-btn" class="btn-prod">✨ Add</button>
+            </div>
+            <ul id="todo-list" class="styled-list"></ul>
+          </div>
+
+          <div class="card prod-card">
+            <h3>🔥 Habit Streaks & Rituals</h3>
+            <div class="input-row">
+              <input type="text" id="habit-input" placeholder="New habit (e.g. Coding 1hr)..." />
+              <button id="add-habit-btn" class="btn-prod">✨ Add</button>
+            </div>
+            <ul id="habit-list" class="styled-list"></ul>
+          </div>
+
+          <div class="card prod-card full-width">
+            <h3>📅 Interactive Sanctuary Planner</h3>
+            <div class="input-row">
+              <input type="date" id="event-date" />
+              <input type="text" id="event-desc" placeholder="Event or milestone details..." />
+              <button id="add-event-btn" class="btn-prod">Schedule Event ✨</button>
+            </div>
+            <ul id="event-list" class="styled-list"></ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 2: FINANCE & BUDGET ENGINE -->
+      <section id="tab-finance" class="tab-view">
+        <header class="section-header fin-header">
+          <h1>💸 Finance & Budget Engine 💎</h1>
+          <p>Income & expense tracking, investment portfolio, and emergency goals.</p>
+        </header>
+
+        <div class="grid-layout">
+          <div class="card fin-card">
+            <h3>📊 Income & Expense Tracker</h3>
+            <div class="form-group">
+              <input type="text" id="fin-desc" placeholder="Transaction Name..." />
+            </div>
+            <div class="form-row">
+              <input type="number" id="fin-amount" placeholder="Amount (₹)" />
+              <select id="fin-type">
+                <option value="income">Income (+)</option>
+                <option value="expense">Expense (-)</option>
+              </select>
+            </div>
+            <button id="add-fin-btn" class="btn-fin">Record Transaction ✨</button>
+            <ul id="fin-list" class="styled-list"></ul>
+          </div>
+
+          <div class="card fin-card">
+            <h3>📈 Cash Flow Analytics</h3>
+            <canvas id="financeChart" width="300" height="180"></canvas>
+          </div>
+
+          <div class="card fin-card">
+            <h3>💎 Investment Portfolio Tracker</h3>
+            <div class="form-group">
+              <input type="text" id="invest-name" placeholder="Asset (e.g., Stocks, MF, Gold)" />
+            </div>
+            <div class="form-row">
+              <input type="number" id="invest-amount" placeholder="Invested (₹)" />
+              <input type="number" id="invest-returns" placeholder="Current Value (₹)" />
+            </div>
+            <button id="add-invest-btn" class="btn-fin">Add Asset ✨</button>
+            <ul id="invest-list" class="styled-list"></ul>
+          </div>
+
+          <div class="card fin-card">
+            <h3>🎯 Savings & Emergency Target</h3>
+            <div class="form-group">
+              <label>Monthly Expense (₹):</label>
+              <input type="number" id="monthly-exp" placeholder="e.g. 10000" />
+            </div>
+            <div class="form-group">
+              <label>Emergency Fund Target:</label>
+              <select id="target-months">
+                <option value="3">3 Months</option>
+                <option value="6">6 Months</option>
+                <option value="12">12 Months</option>
+              </select>
+            </div>
+            <button id="calc-goal-btn" class="btn-fin">Calculate Target ✨</button>
+            <div id="goal-result" class="metric-badge">Target: ₹0</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 3: WELLNESS & LIFESTYLE -->
+      <section id="tab-wellness" class="tab-view">
+        <header class="section-header well-header" id="well-header-box">
+          <h1 id="well-title">🌸 Wellness & Lifestyle Suite ✨</h1>
+          <p id="well-subtitle">Personal care, routines, fitness calculations, and reflection journals.</p>
+        </header>
+
+        <div class="grid-layout">
+          
+          <!-- FEMALE CYCLE & PERIOD PREDICTOR -->
+          <div id="female-routine-card" class="card well-card">
+            <h3>🎀 Female Care & Period Predictor</h3>
+            <div class="form-group">
+              <label>Last Period Start Date:</label>
+              <input type="date" id="period-date" />
+            </div>
+            <button id="predict-period-btn" class="btn-well">Predict Next Cycle ✨</button>
+            <div id="period-result" class="metric-badge">Next Period: --</div>
+          </div>
+
+          <!-- PERSONALIZED ROUTINES BUILDER -->
+          <div class="card well-card">
+            <h3>🧴 Custom Routine Creator & Checklist</h3>
+            <div class="form-group">
+              <label>Category:</label>
+              <select id="routine-category">
+                <!-- Dynamically injected based on Gender -->
+              </select>
+            </div>
+            <div class="input-row">
+              <input type="text" id="routine-step-input" placeholder="e.g. Vitamin C Serum / Cleanser..." />
+              <button id="add-routine-btn" class="btn-well">Add Step ✨</button>
+            </div>
+            <ul id="routine-checklist" class="styled-list"></ul>
+          </div>
+
+          <!-- CUSTOMIZABLE WORKOUT ROUTINE CREATOR & CHECKLIST -->
+          <div class="card well-card">
+            <h3>🏋️‍♂️ Custom Workout Routine & Tracker</h3>
+            <div class="input-row">
+              <input type="text" id="workout-input" placeholder="e.g. Pushups 3x15 / Running 30m..." />
+              <button id="add-workout-btn" class="btn-well">Add Exercise ⚡</button>
+            </div>
+            <ul id="workout-checklist" class="styled-list"></ul>
+          </div>
+
+          <!-- FITNESS, FASTING & CALORIES -->
+          <div class="card well-card">
+            <h3 id="fitness-card-title">🏃 Fitness, Fasting & Calories</h3>
+            <div class="form-group">
+              <label>Intermittent Fasting Timer (Hours):</label>
+              <div class="input-row">
+                <input type="number" id="fasting-hours" placeholder="16" />
+                <button id="start-fast-btn" class="btn-well">Start Fast ⚡</button>
+              </div>
+              <span id="fasting-status">Status: Not Started</span>
+            </div>
+
+            <hr class="divider"/>
+            <div class="form-group">
+              <label>Daily Calorie Log (kcal):</label>
+              <div class="input-row">
+                <input type="number" id="calorie-input" placeholder="e.g. 500" />
+                <button id="log-calorie-btn" class="btn-well">+ Log ⚡</button>
+              </div>
+              <div class="input-row" style="margin-top: 6px;">
+                <span id="calorie-display" style="flex:1; align-self: center; font-weight: bold;">Logged Today: 0 kcal</span>
+                <button id="reset-calorie-btn" class="btn-warning" style="width: auto; padding: 6px 12px; margin: 0;">Reset 🔄</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- FULL BODY MEASUREMENTS -->
+          <div class="card well-card full-width">
+            <h3>📏 Full Body Measurements & BMI Tracker</h3>
+            <div class="form-row">
+              <input type="number" id="weight-input" placeholder="Weight (kg)" />
+              <input type="number" id="height-input" placeholder="Height (cm)" />
+              <button id="calc-bmi-btn" class="btn-well">Calculate BMI ⚡</button>
+            </div>
+            <div id="bmi-result" class="metric-badge">BMI: --</div>
+
+            <hr class="divider"/>
+            <h4>📐 Anatomical Measurements (inches):</h4>
+            <div class="grid-layout-3col">
+              <div class="form-group">
+                <label>Shoulders:</label>
+                <input type="number" id="m-shoulders" placeholder="in" />
+              </div>
+              <div class="form-group" id="female-bust-group">
+                <label>Upper / Lower Bust:</label>
+                <div class="input-row">
+                  <input type="number" id="m-upper-bust" placeholder="Upper" />
+                  <input type="number" id="m-lower-bust" placeholder="Lower" />
+                </div>
+              </div>
+              <div class="form-group hidden" id="male-chest-group">
+                <label>Chest:</label>
+                <input type="number" id="m-chest" placeholder="in" />
+              </div>
+              <div class="form-group">
+                <label>Waist:</label>
+                <input type="number" id="m-waist" placeholder="in" />
+              </div>
+              <div class="form-group">
+                <label>Hips:</label>
+                <input type="number" id="m-hips" placeholder="in" />
+              </div>
+              <div class="form-group">
+                <label>Thighs:</label>
+                <input type="number" id="m-thighs" placeholder="in" />
+              </div>
+              <div class="form-group">
+                <label>Calves:</label>
+                <input type="number" id="m-calves" placeholder="in" />
+              </div>
+              <div class="form-group">
+                <label>Upper Arm (Biceps):</label>
+                <input type="number" id="m-upper-arm" placeholder="in" />
+              </div>
+              <div class="form-group">
+                <label>Lower Arm (Forearm):</label>
+                <input type="number" id="m-lower-arm" placeholder="in" />
+              </div>
+            </div>
+            <button id="save-measure-btn" class="btn-well" style="width: 100%; margin-top: 10px;">Save Full Body Metrics 📏✨</button>
+          </div>
+
+          <!-- WATER INTAKE TRACKER -->
+          <div class="card well-card">
+            <h3>💧 Water Intake Tracker</h3>
+            <div class="water-tracker">
+              <div class="input-row">
+                <button id="add-water-btn" class="btn-well" style="flex:1;">+ Glass (250ml) ✨</button>
+                <button id="sub-water-btn" class="btn-warning" style="width: auto;">- Glass 🚫</button>
+              </div>
+              <div class="progress-container">
+                <div id="water-progress-bar" class="progress-bar"></div>
+              </div>
+              <span id="water-count">0 / 8 Glasses</span>
+            </div>
+          </div>
+
+          <!-- ANALYTICS CHARTS -->
+          <div class="card well-card full-width">
+            <h3>📊 Comprehensive Wellness & Routine Analytics</h3>
+            <p style="margin-bottom: 12px; color: var(--text-muted); font-size: 0.9rem;">Visual progress across water intake, daily calories, routine completion, and workout execution.</p>
+            <div class="grid-layout">
+              <div class="card">
+                <h4 style="margin-bottom: 8px;">Water & Calories</h4>
+                <canvas id="wellnessChart1" width="250" height="150"></canvas>
+              </div>
+              <div class="card">
+                <h4 style="margin-bottom: 8px;">Routines vs Workouts Completed</h4>
+                <canvas id="wellnessChart2" width="250" height="150"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <div class="card well-card full-width">
+            <h3>🤖 Aura AI Habit Coach ✨</h3>
+            <p>Ask Aura AI for personalized productivity, habit, or mindset advice!</p>
+            <div id="ai-chat-box" class="ai-chat-container">
+              <div class="ai-message bot">✨ Hello! I am your Aura AI Coach. How can I help you optimize your daily routine today?</div>
+            </div>
+            <div class="input-row">
+              <input type="text" id="ai-user-input" placeholder="e.g. How can I stay consistent with workouts?" />
+              <button id="ai-send-btn" class="btn-well">Ask AI ✨</button>
+            </div>
+          </div>
+
+          <div class="card well-card full-width">
+            <h3>📖 Reflection Journaling & Mood</h3>
+            <div class="input-row">
+              <input type="text" id="journal-title" placeholder="Journal Title..." />
+              <select id="journal-mood">
+                <option value="😊 Peaceful">😊 Peaceful</option>
+                <option value="🚀 Focused">🚀 Focused</option>
+                <option value="🌿 Refreshed">🌿 Refreshed</option>
+                <option value="⚡ Energetic">⚡ Energetic</option>
+                <option value="💪 Strong">💪 Strong</option>
+              </select>
+            </div>
+            <textarea id="journal-content" placeholder="Write daily reflections, workout logs, or thoughts..."></textarea>
+            <button id="save-journal-btn" class="btn-well">Save Journal Entry ✨</button>
+            <div id="journal-grid" class="notes-grid"></div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- TAB 4: SETTINGS & SANCTUARY CONTROLS -->
+      <section id="tab-settings" class="tab-view">
+        <header class="section-header settings-header">
+          <h1>⚙️ Sanctuary Settings & Themes ✨</h1>
+          <p>Customize your theme, manage account details, or log out.</p>
+        </header>
+
+        <div class="grid-layout">
+          <div class="card settings-card">
+            <h3>🎨 Theme Palette Selection</h3>
+            <p>Select your aesthetic mode:</p>
+            <div class="theme-options">
+              <button class="theme-picker-btn btn-theme-default" onclick="setTheme('theme-default')">🌸 Pastel Pink & Purple</button>
+              <button class="theme-picker-btn btn-theme-masculine" onclick="setTheme('theme-masculine')">🔷 Slate Blue & Royal Navy</button>
+              <button class="theme-picker-btn btn-theme-mint" onclick="setTheme('theme-mint')">🌿 Mint & Emerald</button>
+              <button class="theme-picker-btn btn-theme-sunset" onclick="setTheme('theme-sunset')">🍑 Peach & Gold</button>
+              <button class="theme-picker-btn btn-theme-midnight" onclick="setTheme('theme-midnight')">✨ Midnight Galaxy</button>
+            </div>
+          </div>
+
+          <div class="card settings-card">
+            <h3>👤 Account & Session Management</h3>
+            <div id="settings-user-info" class="settings-user-box">
+              <p>Logged in as: <strong id="settings-email-display">user@example.com</strong></p>
+            </div>
+            <button id="logout-btn" class="btn-danger">Logout of AuraFlow 🚪</button>
+            <hr class="divider"/>
+            <button id="reset-data-btn" class="btn-warning">Reset All Sanctuary Data ⚠️</button>
+          </div>
+
+          <div class="card settings-card">
+            <h3>📥 Data Management & Export</h3>
+            <p>Backup all your sanctuary data into an Excel-compatible CSV file:</p>
+            <button id="export-csv-btn" class="btn-prod" style="width: 100%; margin-top: 10px;">Download Data Backup (CSV) 📄</button>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- INTERACTIVE EDIT PROFILE MODAL -->
+  <div id="profile-modal" class="modal-overlay hidden">
+    <div class="modal-card">
+      <span id="close-profile-btn" class="close-btn" onclick="closeProfileModal()">&times;</span>
+      <h2>👤 Edit Profile Details ✨</h2>
+      <p style="margin-bottom: 16px; color: #636E72;">Update your photo, name, age, and gender</p>
+      
+      <form id="edit-profile-form">
+        <div class="form-group">
+          <label>Profile Picture 📸</label>
+          <input type="file" id="edit-photo-file" accept="image/*" />
+        </div>
+        <div class="form-group">
+          <label>Full Name ✨</label>
+          <input type="text" id="edit-name" required />
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Age 🎂</label>
+            <input type="number" id="edit-age" required />
+          </div>
+          <div class="form-group">
+            <label>Gender 👤</label>
+            <select id="edit-gender" required>
+              <option value="female">Female 🌸</option>
+              <option value="male">Male ⚡</option>
+              <option value="other">Other 🌟</option>
+            </select>
+          </div>
+        </div>
+        <button type="submit" class="btn-sparkle" style="margin-top: 10px;">Save Profile Changes ✨</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- PRO MEMBERSHIP MODAL -->
+  <div id="pro-modal" class="modal-overlay hidden">
+    <div class="modal-card pro-card-modal">
+      <span id="close-pro-btn" class="close-btn">&times;</span>
+      
+      <div class="pro-modal-header">
+        <h2>🚀 Unlock AuraFlow Pro ✨</h2>
+        <p>Access exclusive features & analytics across all suites</p>
+      </div>
+      
+      <div class="pricing-tier">
+        <div class="plan-option" id="plan-monthly" onclick="selectPlan('monthly')">
+          <div class="plan-badge">Flexible</div>
+          <h3>Monthly Pass</h3>
+          <div class="price">₹299 <span>/month</span></div>
+          <ul class="plan-features">
+            <li>✨ Advanced Chart Analytics</li>
+            <li>✨ Custom Routine Builder</li>
+            <li>✨ Unlimited Cloud Sync</li>
+            <li>✨ Export Data to CSV</li>
+          </ul>
+        </div>
+
+        <div class="plan-option featured selected" id="plan-annual" onclick="selectPlan('annual')">
+          <div class="plan-badge best-value">Best Value ✨</div>
+          <h3>Annual Pro ✨</h3>
+          <div class="price">₹1,499 <span>/year</span></div>
+          <ul class="plan-features">
+            <li>✨ Everything in Monthly</li>
+            <li>✨ AI Coaching Assistant</li>
+            <li>✨ Smart Metrics Predictions</li>
+            <li>✨ Priority 24/7 VIP Support</li>
+          </ul>
+        </div>
+      </div>
+
+      <button id="proceed-payment-btn" class="btn-primary-pro" onclick="openPaymentModal()">Proceed to Payment (₹1,499) ✨</button>
+    </div>
+  </div>
+
+  <!-- INTERACTIVE PAYMENT GATEWAY MODAL -->
+  <div id="payment-modal" class="modal-overlay hidden">
+    <div class="modal-card payment-card-modal">
+      <span id="close-payment-btn" class="close-btn" onclick="closePaymentModal()">&times;</span>
+      
+      <div class="payment-header">
+        <h2>💳 AuraFlow Secure Checkout</h2>
+        <p id="payment-plan-summary">Selected Plan: Annual Pro (₹1,499)</p>
+      </div>
+
+      <div class="payment-methods">
+        <label><input type="radio" name="pay-method" value="upi" checked onclick="togglePayMethod('upi')"> UPI / GPay / PhonePe</label>
+        <label><input type="radio" name="pay-method" value="card" onclick="togglePayMethod('card')"> Credit / Debit Card</label>
+      </div>
+
+      <div id="upi-form" class="payment-form">
+        <div class="form-group">
+          <label>Enter UPI ID ✨</label>
+          <input type="text" id="upi-id" placeholder="yourname@upi" />
+        </div>
+      </div>
+
+      <div id="card-form" class="payment-form hidden">
+        <div class="form-group">
+          <label>Card Number 💳</label>
+          <input type="text" placeholder="4532 •••• •••• 8921" />
+        </div>
+        <div class="form-row">
+          <input type="text" placeholder="MM/YY" />
+          <input type="password" placeholder="CVV" />
+        </div>
+      </div>
+
+      <button class="btn-sparkle" onclick="processPayment()">Confirm & Complete Payment ✨</button>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="toast hidden">Action successful! ✨</div>
+
+  <script src="script.js"></script>
+</body>
+</html>
