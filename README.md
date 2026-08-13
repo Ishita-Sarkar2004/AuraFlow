@@ -39,3 +39,6 @@ Check out the live interactive app here: **[AuraFlow Live Demo](https://ishita-s
 1. Clone this repository:
    ```bash
    git clone [https://github.com/Ishita-Sarkar2004/AuraFlow.git](https://github.com/Ishita-Sarkar2004/AuraFlow.git)
+
+
+   © 2026 Ishita Sarkar. All rights reserved.
