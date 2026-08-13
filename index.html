@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>AuraFlow — Personal Growth & Productivity Suite</title>
   <link rel="stylesheet" href="style.css" />
-  <!-- Chart.js CDN -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body class="theme-default">
@@ -20,15 +19,13 @@
         <p>Step into your personalized personal growth sanctuary</p>
       </div>
 
-      <!-- Auth Container -->
       <div id="auth-container" class="auth-box">
-        <!-- Tabs to switch modes -->
         <div class="auth-tabs">
           <button type="button" id="tab-login" class="auth-tab-btn active" onclick="switchAuthMode('login')">Log In</button>
           <button type="button" id="tab-signup" class="auth-tab-btn" onclick="switchAuthMode('signup')">Sign Up</button>
         </div>
 
-        <!-- LOGIN FORM (Only Email & Password) -->
+        <!-- LOGIN FORM -->
         <form id="login-form">
           <h3>Welcome Back ✨</h3>
           <div class="form-group">
@@ -40,7 +37,7 @@
           <button type="submit" class="btn-sparkle">Log In ✨</button>
         </form>
 
-        <!-- SIGNUP FORM (Full Details) -->
+        <!-- SIGNUP FORM -->
         <form id="signup-form" class="hidden">
           <h3>Create Your Aura Account 🌸</h3>
           <div class="form-group">
@@ -69,7 +66,6 @@
 
   <!-- APP SHELL -->
   <div class="app-container">
-    <!-- Sidebar Navigation -->
     <aside class="sidebar" id="app-sidebar">
       <div class="brand-header">
         <h2 id="brand-heading">AuraFlow <span class="badge-pro hidden" id="pro-tag">PRO</span></h2>
@@ -107,7 +103,6 @@
       </div>
     </aside>
 
-    <!-- Main Workspace -->
     <main class="main-content">
       
       <!-- TAB 1: TASK & PRODUCTIVITY -->
@@ -156,6 +151,27 @@
         </header>
 
         <div class="grid-layout">
+          <!-- BANK ACCOUNT SYNC (PRO FEATURE) -->
+          <div class="card fin-card full-width">
+            <h3>🏦 Automated Bank Account Sync <span class="badge-pro">PRO</span></h3>
+            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 10px;">
+              Link your bank account to automatically import live transactions into your Income & Expense Tracker!
+            </p>
+            <div class="input-row">
+              <select id="bank-select" style="flex: 2;">
+                <option value="HDFC Bank">HDFC Bank 🏦</option>
+                <option value="SBI">State Bank of India (SBI) 🏦</option>
+                <option value="ICICI Bank">ICICI Bank 🏦</option>
+                <option value="Axis Bank">Axis Bank 🏦</option>
+              </select>
+              <input type="password" id="bank-acc-num" placeholder="Account Number / UPI Link" style="flex: 2;" />
+              <button id="link-bank-btn" class="btn-fin" style="flex: 1;">Link Account ✨</button>
+            </div>
+            <div id="bank-status-msg" class="metric-badge hidden" style="margin-top: 8px;">
+              Connected: <strong id="connected-bank-name">HDFC Bank</strong> — Auto Sync Active ⚡
+            </div>
+          </div>
+
           <div class="card fin-card">
             <h3>📊 Income & Expense Tracker</h3>
             <div class="form-group">
@@ -218,8 +234,6 @@
         </header>
 
         <div class="grid-layout">
-          
-          <!-- FEMALE CYCLE & PERIOD PREDICTOR -->
           <div id="female-routine-card" class="card well-card">
             <h3>🎀 Female Care & Period Predictor</h3>
             <div class="form-group">
@@ -230,14 +244,11 @@
             <div id="period-result" class="metric-badge">Next Period: --</div>
           </div>
 
-          <!-- PERSONALIZED ROUTINES BUILDER -->
           <div class="card well-card">
             <h3>🧴 Custom Routine Creator & Checklist</h3>
             <div class="form-group">
               <label>Category:</label>
-              <select id="routine-category">
-                <!-- Dynamically injected based on Gender -->
-              </select>
+              <select id="routine-category"></select>
             </div>
             <div class="input-row">
               <input type="text" id="routine-step-input" placeholder="e.g. Vitamin C Serum / Cleanser..." />
@@ -246,7 +257,6 @@
             <ul id="routine-checklist" class="styled-list"></ul>
           </div>
 
-          <!-- CUSTOMIZABLE WORKOUT ROUTINE CREATOR & CHECKLIST -->
           <div class="card well-card">
             <h3>🏋️‍♂️ Custom Workout Routine & Tracker</h3>
             <div class="input-row">
@@ -256,7 +266,6 @@
             <ul id="workout-checklist" class="styled-list"></ul>
           </div>
 
-          <!-- FITNESS, FASTING & CALORIES -->
           <div class="card well-card">
             <h3 id="fitness-card-title">🏃 Fitness, Fasting & Calories</h3>
             <div class="form-group">
@@ -282,7 +291,6 @@
             </div>
           </div>
 
-          <!-- FULL BODY MEASUREMENTS -->
           <div class="card well-card full-width">
             <h3>📏 Full Body Measurements & BMI Tracker</h3>
             <div class="form-row">
@@ -338,7 +346,6 @@
             <button id="save-measure-btn" class="btn-well" style="width: 100%; margin-top: 10px;">Save Full Body Metrics 📏✨</button>
           </div>
 
-          <!-- WATER INTAKE TRACKER -->
           <div class="card well-card">
             <h3>💧 Water Intake Tracker</h3>
             <div class="water-tracker">
@@ -353,7 +360,6 @@
             </div>
           </div>
 
-          <!-- ANALYTICS CHARTS -->
           <div class="card well-card full-width">
             <h3>📊 Comprehensive Wellness & Routine Analytics</h3>
             <p style="margin-bottom: 12px; color: var(--text-muted); font-size: 0.9rem;">Visual progress across water intake, daily calories, routine completion, and workout execution.</p>
@@ -431,10 +437,11 @@
             <button id="reset-data-btn" class="btn-warning">Reset All Sanctuary Data ⚠️</button>
           </div>
 
-          <div class="card settings-card">
-            <h3>📥 Data Management & Export</h3>
+          <!-- FULL-WIDTH PRO EXPORT CARD -->
+          <div class="card settings-card full-width">
+            <h3>📥 Data Management & Export <span class="badge-pro">PRO</span></h3>
             <p>Backup all your sanctuary data into an Excel-compatible CSV file:</p>
-            <button id="export-csv-btn" class="btn-prod" style="width: 100%; margin-top: 10px;">Download Data Backup (CSV) 📄</button>
+            <button id="export-csv-btn" class="btn-sparkle" style="width: 100%; margin-top: 10px;">Download Data Backup (CSV) 📄✨</button>
           </div>
         </div>
       </section>
@@ -495,7 +502,7 @@
           <ul class="plan-features">
             <li>✨ Advanced Chart Analytics</li>
             <li>✨ Custom Routine Builder</li>
-            <li>✨ Unlimited Cloud Sync</li>
+            <li>✨ Bank Account Auto Sync</li>
             <li>✨ Export Data to CSV</li>
           </ul>
         </div>
@@ -554,7 +561,6 @@
     </div>
   </div>
 
-  <!-- Toast Notification -->
   <div id="toast" class="toast hidden">Action successful! ✨</div>
 
   <script src="script.js"></script>

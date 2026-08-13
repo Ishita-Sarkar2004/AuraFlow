@@ -483,6 +483,69 @@ document.getElementById('calc-goal-btn').onclick = () => {
     document.getElementById('goal-result').textContent = `Target: ₹${(exp * months).toLocaleString()}`;
   }
 };
+// Add or update the Bank Sync and Pro CSV handler in script.js:
+
+// --- BANK ACCOUNT AUTO SYNC FEATURE ---
+document.getElementById('link-bank-btn').onclick = () => {
+  if (!currentUser || !currentUser.isPro) {
+    showToast('Bank Account Sync is an AuraFlow Pro feature! 🚀');
+    document.getElementById('pro-modal').classList.remove('hidden');
+    return;
+  }
+
+  const bankName = document.getElementById('bank-select').value;
+  const accNum = document.getElementById('bank-acc-num').value.trim();
+
+  if (!accNum) {
+    alert("Please enter a valid Account Number or UPI ID.");
+    return;
+  }
+
+  // Show connected badge
+  const statusMsg = document.getElementById('bank-status-msg');
+  const bankDisplay = document.getElementById('connected-bank-name');
+  if (statusMsg && bankDisplay) {
+    bankDisplay.textContent = bankName;
+    statusMsg.classList.remove('hidden');
+  }
+
+  // Simulate auto-imported income and expense transactions
+  const autoImportedTransactions = [
+    { id: Date.now() + 1, desc: `Salary Credit (${bankName})`, amount: 45000, type: 'income' },
+    { id: Date.now() + 2, desc: `SIP Investment (${bankName})`, amount: 5000, type: 'expense' },
+    { id: Date.now() + 3, desc: `Utility & Wifi Bill (${bankName})`, amount: 1200, type: 'expense' }
+  ];
+
+  appData.finances.push(...autoImportedTransactions);
+  saveAllData();
+  renderFinances();
+  showToast(`Connected to ${bankName}! Auto-imported 3 recent transactions 🏦✨`);
+};
+
+// --- PRO CSV EXPORT HANDLER ---
+document.getElementById('export-csv-btn').onclick = () => {
+  // If user is NOT pro, trigger Pro Payment Option!
+  if (!currentUser || !currentUser.isPro) {
+    showToast('CSV Backup Export is an AuraFlow Pro feature! 🚀');
+    document.getElementById('pro-modal').classList.remove('hidden');
+    return;
+  }
+
+  // If user IS pro, generate and download CSV
+  let csvContent = "data:text/csv;charset=utf-8,Category,Detail,Value\n";
+  (appData.todos || []).forEach(t => { csvContent += `Task,"${t.text}",Pending\n`; });
+  (appData.finances || []).forEach(f => { csvContent += `Finance,"${f.desc}",₹${f.amount} (${f.type})\n`; });
+  (appData.journals || []).forEach(j => { csvContent += `Journal,"${j.title}",${j.mood}\n`; });
+
+  const encodedUri = encodeURI(csvContent);
+  const link = document.createElement("a");
+  link.setAttribute("href", encodedUri);
+  link.setAttribute("download", "AuraFlow_Sanctuary_Backup.csv");
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  showToast('CSV Backup Downloaded! 📄✨');
+};
 
 // 8. ROUTINE BUILDER & WORKOUT TRACKER
 document.getElementById('add-routine-btn').onclick = () => {
