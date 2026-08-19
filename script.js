@@ -91,6 +91,9 @@ function initAuthFormHandlers() {
         return;
       }
 
+      // Assign initial theme by gender choice
+      const assignedTheme = (genderChoice === 'male') ? 'theme-masculine' : 'theme-default';
+
       currentUser = {
         name: document.getElementById('signup-name').value,
         email: email,
@@ -100,11 +103,12 @@ function initAuthFormHandlers() {
         isPro: false
       };
 
+      appData.theme = assignedTheme;
       activeUserEmail = email;
 
       userDatabase[activeUserEmail] = {
         profile: currentUser,
-        sanctuaryData: appData || {}
+        sanctuaryData: appData
       };
 
       saveAllData();
@@ -129,6 +133,13 @@ function initAuthFormHandlers() {
       currentUser = userDatabase[activeUserEmail].profile;
       appData = userDatabase[activeUserEmail].sanctuaryData || appData;
 
+      // Sync theme automatically if gender context requires it
+      if (currentUser && currentUser.gender === 'male') {
+        if (!appData.theme || appData.theme === 'theme-default') {
+          appData.theme = 'theme-masculine';
+        }
+      }
+
       saveAllData();
       checkAuth();
       renderAllData();
@@ -137,10 +148,11 @@ function initAuthFormHandlers() {
 }
 
 function handleLogout() {
-  saveAllData(); // Save data safely first
+  saveAllData();
   activeUserEmail = null;
   currentUser = null;
-  localStorage.removeItem('auraFlowActiveEmail'); // Clears session pointer ONLY!
+  localStorage.removeItem('auraFlowActiveEmail');
+  document.body.className = 'theme-default';
   checkAuth();
 }
 
@@ -173,9 +185,15 @@ const editForm = document.getElementById('edit-profile-form');
 if (editForm) {
   editForm.onsubmit = function(e) {
     e.preventDefault();
+    const oldGender = currentUser.gender;
     currentUser.name = document.getElementById('edit-name').value;
     currentUser.age = document.getElementById('edit-age').value;
     currentUser.gender = document.getElementById('edit-gender').value;
+
+    // Adapt theme if gender changed
+    if (oldGender !== currentUser.gender) {
+      appData.theme = (currentUser.gender === 'male') ? 'theme-masculine' : 'theme-default';
+    }
 
     const photoInput = document.getElementById('edit-photo-file');
     if (photoInput && photoInput.files && photoInput.files[0]) {
@@ -242,7 +260,7 @@ function updateBrandTitle() {
   }
 }
 
-// DYNAMIC GENDER, THEME & ROUTINE ADAPTATION
+// DYNAMIC GENDER & THEME PALETTE ADAPTATION
 function applyGenderContext() {
   if (!currentUser) return;
   const isMale = currentUser.gender === 'male';
@@ -253,7 +271,7 @@ function applyGenderContext() {
   const routineCatSelect = document.getElementById('routine-category');
 
   if (isMale) {
-    // 🎨 AUTO-SWITCH TO SLATE BLUE THEME FOR MALE USERS
+    // Force slate blue theme for male profiles unless user specifically chose dark/mint/sunset
     if (!appData.theme || appData.theme === 'theme-default') {
       appData.theme = 'theme-masculine';
     }
@@ -288,7 +306,7 @@ function applyGenderContext() {
       `;
     }
   } else {
-    // 🎨 AUTO-SWITCH TO PASTEL PINK THEME FOR FEMALE USERS
+    // Set pastel pink theme for female profiles unless customized
     if (!appData.theme || appData.theme === 'theme-masculine') {
       appData.theme = 'theme-default';
     }
@@ -333,7 +351,7 @@ function setTheme(themeName) {
 }
 
 function applyStoredTheme() {
-  if (appData.theme) {
+  if (appData && appData.theme) {
     document.body.className = appData.theme;
   }
 }
